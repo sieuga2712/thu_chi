@@ -157,6 +157,16 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -172,6 +182,7 @@ class $TransactionsTable extends Transactions
     sourcePackage,
     createdAt,
     fingerprint,
+    note,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -283,6 +294,12 @@ class $TransactionsTable extends Transactions
         ),
       );
     }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     return context;
   }
 
@@ -346,6 +363,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}fingerprint'],
       ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
     );
   }
 
@@ -374,6 +395,13 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final String sourcePackage;
   final DateTime createdAt;
   final String? fingerprint;
+
+  /// Ghi chú cá nhân do người dùng tự gõ (Phase 11) — đồng bộ qua Supabase
+  /// bằng [fingerprint] làm khóa, KHÔNG đồng bộ account/rawNotification.
+  /// Không null (mặc định rỗng, giống [description]) — SQLite cho phép
+  /// `ALTER TABLE ADD COLUMN` kèm `DEFAULT ''` áp cho toàn bộ dòng cũ ngay,
+  /// không cần backfill thủ công như [fingerprint].
+  final String note;
   const TransactionRow({
     required this.id,
     required this.transactionType,
@@ -388,6 +416,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     required this.sourcePackage,
     required this.createdAt,
     this.fingerprint,
+    required this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -417,6 +446,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     if (!nullToAbsent || fingerprint != null) {
       map['fingerprint'] = Variable<String>(fingerprint);
     }
+    map['note'] = Variable<String>(note);
     return map;
   }
 
@@ -443,6 +473,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       fingerprint: fingerprint == null && nullToAbsent
           ? const Value.absent()
           : Value(fingerprint),
+      note: Value(note),
     );
   }
 
@@ -467,6 +498,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       sourcePackage: serializer.fromJson<String>(json['sourcePackage']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       fingerprint: serializer.fromJson<String?>(json['fingerprint']),
+      note: serializer.fromJson<String>(json['note']),
     );
   }
   @override
@@ -486,6 +518,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'sourcePackage': serializer.toJson<String>(sourcePackage),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'fingerprint': serializer.toJson<String?>(fingerprint),
+      'note': serializer.toJson<String>(note),
     };
   }
 
@@ -503,6 +536,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     String? sourcePackage,
     DateTime? createdAt,
     Value<String?> fingerprint = const Value.absent(),
+    String? note,
   }) => TransactionRow(
     id: id ?? this.id,
     transactionType: transactionType ?? this.transactionType,
@@ -519,6 +553,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     sourcePackage: sourcePackage ?? this.sourcePackage,
     createdAt: createdAt ?? this.createdAt,
     fingerprint: fingerprint.present ? fingerprint.value : this.fingerprint,
+    note: note ?? this.note,
   );
   TransactionRow copyWithCompanion(TransactionsCompanion data) {
     return TransactionRow(
@@ -551,6 +586,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       fingerprint: data.fingerprint.present
           ? data.fingerprint.value
           : this.fingerprint,
+      note: data.note.present ? data.note.value : this.note,
     );
   }
 
@@ -569,7 +605,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('rawNotification: $rawNotification, ')
           ..write('sourcePackage: $sourcePackage, ')
           ..write('createdAt: $createdAt, ')
-          ..write('fingerprint: $fingerprint')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -589,6 +626,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     sourcePackage,
     createdAt,
     fingerprint,
+    note,
   );
   @override
   bool operator ==(Object other) =>
@@ -606,7 +644,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.rawNotification == this.rawNotification &&
           other.sourcePackage == this.sourcePackage &&
           other.createdAt == this.createdAt &&
-          other.fingerprint == this.fingerprint);
+          other.fingerprint == this.fingerprint &&
+          other.note == this.note);
 }
 
 class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
@@ -623,6 +662,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<String> sourcePackage;
   final Value<DateTime> createdAt;
   final Value<String?> fingerprint;
+  final Value<String> note;
   const TransactionsCompanion({
     this.id = const Value.absent(),
     this.transactionType = const Value.absent(),
@@ -637,6 +677,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.sourcePackage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.fingerprint = const Value.absent(),
+    this.note = const Value.absent(),
   });
   TransactionsCompanion.insert({
     this.id = const Value.absent(),
@@ -652,6 +693,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     required String sourcePackage,
     this.createdAt = const Value.absent(),
     this.fingerprint = const Value.absent(),
+    this.note = const Value.absent(),
   }) : transactionType = Value(transactionType),
        amount = Value(amount),
        transactionTime = Value(transactionTime),
@@ -671,6 +713,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<String>? sourcePackage,
     Expression<DateTime>? createdAt,
     Expression<String>? fingerprint,
+    Expression<String>? note,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -686,6 +729,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (sourcePackage != null) 'source_package': sourcePackage,
       if (createdAt != null) 'created_at': createdAt,
       if (fingerprint != null) 'fingerprint': fingerprint,
+      if (note != null) 'note': note,
     });
   }
 
@@ -703,6 +747,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<String>? sourcePackage,
     Value<DateTime>? createdAt,
     Value<String?>? fingerprint,
+    Value<String>? note,
   }) {
     return TransactionsCompanion(
       id: id ?? this.id,
@@ -718,6 +763,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       sourcePackage: sourcePackage ?? this.sourcePackage,
       createdAt: createdAt ?? this.createdAt,
       fingerprint: fingerprint ?? this.fingerprint,
+      note: note ?? this.note,
     );
   }
 
@@ -767,6 +813,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     if (fingerprint.present) {
       map['fingerprint'] = Variable<String>(fingerprint.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     return map;
   }
 
@@ -785,7 +834,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('rawNotification: $rawNotification, ')
           ..write('sourcePackage: $sourcePackage, ')
           ..write('createdAt: $createdAt, ')
-          ..write('fingerprint: $fingerprint')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -824,6 +874,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required String sourcePackage,
       Value<DateTime> createdAt,
       Value<String?> fingerprint,
+      Value<String> note,
     });
 typedef $$TransactionsTableUpdateCompanionBuilder =
     TransactionsCompanion Function({
@@ -840,6 +891,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> sourcePackage,
       Value<DateTime> createdAt,
       Value<String?> fingerprint,
+      Value<String> note,
     });
 
 class $$TransactionsTableFilterComposer
@@ -914,6 +966,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get fingerprint => $composableBuilder(
     column: $table.fingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -991,6 +1048,11 @@ class $$TransactionsTableOrderingComposer
     column: $table.fingerprint,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TransactionsTableAnnotationComposer
@@ -1057,6 +1119,9 @@ class $$TransactionsTableAnnotationComposer
     column: $table.fingerprint,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
 }
 
 class $$TransactionsTableTableManager
@@ -1103,6 +1168,7 @@ class $$TransactionsTableTableManager
                 Value<String> sourcePackage = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fingerprint = const Value.absent(),
+                Value<String> note = const Value.absent(),
               }) => TransactionsCompanion(
                 id: id,
                 transactionType: transactionType,
@@ -1117,6 +1183,7 @@ class $$TransactionsTableTableManager
                 sourcePackage: sourcePackage,
                 createdAt: createdAt,
                 fingerprint: fingerprint,
+                note: note,
               ),
           createCompanionCallback:
               ({
@@ -1133,6 +1200,7 @@ class $$TransactionsTableTableManager
                 required String sourcePackage,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fingerprint = const Value.absent(),
+                Value<String> note = const Value.absent(),
               }) => TransactionsCompanion.insert(
                 id: id,
                 transactionType: transactionType,
@@ -1147,6 +1215,7 @@ class $$TransactionsTableTableManager
                 sourcePackage: sourcePackage,
                 createdAt: createdAt,
                 fingerprint: fingerprint,
+                note: note,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

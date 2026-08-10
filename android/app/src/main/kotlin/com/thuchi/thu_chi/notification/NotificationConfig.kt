@@ -11,13 +11,10 @@ object NotificationConfig {
 
     /**
      * Các package name mà notification sẽ được bắt và gửi sang Flutter.
-     * Để trống cho đến khi xác minh chính xác package name của VietinBank
-     * iPay (ví dụ: chạy `adb shell dumpsys notification` khi có thông báo
-     * giao dịch thật đang hiện, hoặc `adb shell pm list packages | grep vietin`).
-     * KHÔNG được đoán mò package name ở đây.
+     * Đã xác minh trên thiết bị thật qua `adb shell pm list packages | grep vietin`.
      */
     val SUPPORTED_PACKAGES: Set<String> = setOf(
-        // "com.vietinbank.ipay", // TODO: thay bằng package name đã xác minh
+        "com.vietinbank.ipay",
     )
 
     const val METHOD_CHANNEL = "com.thuchi.thu_chi/notification_method"
@@ -27,6 +24,7 @@ object NotificationConfig {
     const val METHOD_OPEN_NOTIFICATION_SETTINGS = "openNotificationSettings"
     const val METHOD_GET_PENDING_NOTIFICATIONS = "getPendingNotifications"
     const val METHOD_SEND_TEST_NOTIFICATION = "sendTestNotification"
+    const val METHOD_RESCAN_ACTIVE_NOTIFICATIONS = "rescanActiveNotifications"
 
     /** Số lượng notification tối đa được đệm ở phía native khi Flutter chưa chạy. */
     const val MAX_PENDING_QUEUE_SIZE = 200

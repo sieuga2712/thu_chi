@@ -38,4 +38,11 @@ class Transactions extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   TextColumn get fingerprint => text().nullable()();
+
+  /// Ghi chú cá nhân do người dùng tự gõ (Phase 11) — đồng bộ qua Supabase
+  /// bằng [fingerprint] làm khóa, KHÔNG đồng bộ account/rawNotification.
+  /// Không null (mặc định rỗng, giống [description]) — SQLite cho phép
+  /// `ALTER TABLE ADD COLUMN` kèm `DEFAULT ''` áp cho toàn bộ dòng cũ ngay,
+  /// không cần backfill thủ công như [fingerprint].
+  TextColumn get note => text().withDefault(const Constant(''))();
 }

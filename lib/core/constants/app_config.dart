@@ -16,8 +16,8 @@ class AppConfig {
   static const String appName = 'Thu Chi';
 
   /// Các package mà notification sẽ được bắt và phân tích.
-  /// Mặc định để trống — phải cấu hình trước khi listener hoạt động.
+  /// Đã xác minh trên thiết bị thật qua `adb shell pm list packages | grep vietin`.
   static const Set<String> supportedPackages = <String>{
-    // 'com.vietinbank.ipay', // TODO: thay bằng package name đã xác minh
+    'com.vietinbank.ipay',
   };
 }

@@ -23,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +53,10 @@ class AppDatabase extends _$AppDatabase {
             }
 
             await migrator.createIndex(transactionsFingerprintIdx);
+          }
+          if (from < 3) {
+            // Phase 11: thêm cột note (ghi chú cá nhân, đồng bộ qua Supabase).
+            await migrator.addColumn(transactions, transactions.note);
           }
         },
       );

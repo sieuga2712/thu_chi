@@ -144,4 +144,77 @@ void main() {
     expect(result!.rawNotification, contains(text));
     expect(result.sourcePackage, 'com.vietinbank.ipay');
   });
+
+  test(
+    'notification format thay đổi (thứ tự nhãn khác, không có TK) vẫn parse đúng '
+    'nhờ hệ thống pattern linh hoạt, không cần sửa code',
+    () {
+      // Định dạng giả định khác hẳn 2 ví dụ chuẩn trong spec: đảo thứ tự
+      // Số dư trước Nội dung, không có nhãn "TK", cách diễn đạt khác
+      // ("Biến động" thay vì đứng ngay sau số tài khoản).
+      final result = parser.parse(
+        notif(
+          text: 'VietinBank Smart\nBiến động: -75,000 VND\nSố dư: 3,200,000 VND\nNội dung: THANH TOAN GRAB',
+        ),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.type, TransactionType.expense);
+      expect(result.amount, 75000);
+      expect(result.balanceAfter, 3200000);
+      expect(result.description, 'THANH TOAN GRAB');
+      // Không có nhãn TK/Tài khoản trong định dạng giả định này -> không
+      // đoán mò, account phải là null thay vì suy diễn sai.
+      expect(result.account, isNull);
+    },
+  );
+
+  test(
+    'dữ liệu thật từ VietinBank iPay: bóc mã tham chiếu "<mã> QR - " ra khỏi nội dung, '
+    'giữ số tài khoản đầy đủ không che',
+    () {
+      // Ghi lại nguyên văn từ notification thật bắt được trên thiết bị thật
+      // (xem section 6/9 — không có số dư trong loại notification QR này).
+      final result = parser.parse(
+        notif(
+          text:
+              'TK 104878432165 -35,000VND\n'
+              'ND: CT DI:248K2680F56JXSTT QR - NGUYEN MINH QUANG Chuyen tien; tai iPay',
+        ),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.type, TransactionType.expense);
+      expect(result.amount, 35000);
+      expect(result.account, '104878432165');
+      expect(result.description, 'NGUYEN MINH QUANG Chuyen tien; tai iPay');
+      expect(result.balanceAfter, isNull);
+    },
+  );
+
+  test('nội dung không có "QR -" thì giữ nguyên, không bị cắt xén nhầm', () {
+    final result = parser.parse(
+      notif(text: 'TK ****1234 +2,000,000 VND\nND: NGUYEN VAN A CHUYEN TIEN'),
+    );
+
+    expect(result!.description, 'NGUYEN VAN A CHUYEN TIEN');
+  });
+
+  test(
+    'duplicate notification: cùng nội dung parse ra cùng dữ liệu giao dịch mỗi lần '
+    '(chống trùng lặp thật sự nằm ở tầng repository/fingerprint, xem '
+    'test/repositories/drift_transaction_repository_test.dart nhóm "Phase 9")',
+    () {
+      const text = 'TK ****1234 +2,000,000 VND\nND: NGUYEN VAN A CHUYEN TIEN\nSD: 15,500,000 VND';
+      final first = parser.parse(notif(text: text));
+      final second = parser.parse(notif(text: text));
+
+      expect(first, isNotNull);
+      expect(second, isNotNull);
+      expect(first!.amount, second!.amount);
+      expect(first.description, second.description);
+      expect(first.balanceAfter, second.balanceAfter);
+      expect(first.transactionTime, second.transactionTime);
+    },
+  );
 }

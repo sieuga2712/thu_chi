@@ -9,6 +9,8 @@ class FakeNativeNotificationService implements NativeNotificationService {
   List<NotificationData> pendingOverride = const [];
   int openSettingsCallCount = 0;
   int sendTestNotificationCallCount = 0;
+  int rescanCallCount = 0;
+  bool rescanResult = true;
 
   @override
   Future<bool> isNotificationAccessGranted() async => grantedOverride;
@@ -28,4 +30,10 @@ class FakeNativeNotificationService implements NativeNotificationService {
 
   @override
   Stream<NotificationData> get notificationStream => const Stream.empty();
+
+  @override
+  Future<bool> rescanActiveNotifications() async {
+    rescanCallCount++;
+    return rescanResult;
+  }
 }

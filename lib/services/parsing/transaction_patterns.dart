@@ -71,6 +71,17 @@ final RegExp nextLabelPattern = RegExp(
   caseSensitive: false,
 );
 
+/// Một số ngân hàng (đã quan sát thấy ở VietinBank iPay với giao dịch QR)
+/// nhúng mã tham chiếu giao dịch ngay trong nội dung, dạng
+/// `<mã tham chiếu> QR - <nội dung thật>` (ví dụ:
+/// "248C60810X8U33PX 6222ICBVC21J2CIC QR - NGUYEN MINH QUANG Chuyen tien").
+/// Dùng để bóc phần mã tham chiếu khó đọc ra khỏi description đã trích xuất,
+/// giữ lại phần nội dung dễ đọc hơn — không mất dữ liệu vì rawNotification
+/// vẫn lưu nguyên vẹn để đối chiếu khi cần.
+final List<RegExp> descriptionPrefixStripPatterns = [
+  RegExp(r'\bQR\s*-\s*(.+)$', caseSensitive: false),
+];
+
 /// Số dư sau giao dịch, đứng sau nhãn "SD:"/"Số dư:"/"So du:".
 final List<RegExp> balancePatterns = [
   RegExp(r'(?:SD|So du|Số dư)\s*[:\.]?\s*([\d.,]+)', caseSensitive: false),

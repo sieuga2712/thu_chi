@@ -46,6 +46,13 @@ class DriftTransactionRepository implements TransactionRepository {
     await _db.delete(_db.transactions).go();
   }
 
+  @override
+  Future<void> updateNote(int id, String note) async {
+    await (_db.update(_db.transactions)..where((t) => t.id.equals(id))).write(
+      TransactionsCompanion(note: Value(note)),
+    );
+  }
+
   domain.Transaction _toDomain(TransactionRow row) {
     return domain.Transaction(
       id: row.id,
@@ -59,6 +66,7 @@ class DriftTransactionRepository implements TransactionRepository {
       transactionCode: row.transactionCode,
       rawNotification: row.rawNotification,
       sourcePackage: row.sourcePackage,
+      note: row.note,
     );
   }
 

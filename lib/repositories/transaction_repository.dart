@@ -10,4 +10,8 @@ abstract class TransactionRepository {
   Future<void> insert(Transaction transaction);
   Future<void> delete(int id);
   Future<void> deleteAll();
+
+  /// Cập nhật ghi chú cá nhân (Phase 11) cho giao dịch [id]. Không đụng đến
+  /// bất kỳ trường nào khác của giao dịch.
+  Future<void> updateNote(int id, String note);
 }

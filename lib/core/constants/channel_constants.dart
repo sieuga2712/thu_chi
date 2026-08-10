@@ -16,4 +16,5 @@ class ChannelConstants {
   static const String methodOpenNotificationSettings = 'openNotificationSettings';
   static const String methodGetPendingNotifications = 'getPendingNotifications';
   static const String methodSendTestNotification = 'sendTestNotification';
+  static const String methodRescanActiveNotifications = 'rescanActiveNotifications';
 }

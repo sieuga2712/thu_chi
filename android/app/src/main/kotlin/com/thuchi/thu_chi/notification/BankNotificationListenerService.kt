@@ -26,17 +26,43 @@ import android.util.Log
  *   notification luôn được lưu bền vững qua [NotificationStore] trước tiên;
  *   việc forward tới một listener Flutter đang sống chỉ là phần cộng thêm,
  *   làm được thì làm (best-effort).
+ *
+ * [onNotificationPosted] chỉ bắt được notification MỚI phát sinh sau khi
+ * listener đã kết nối — nếu người dùng vừa cấp quyền (hoặc app vừa cấu hình
+ * lại [NotificationConfig.SUPPORTED_PACKAGES]) trong khi một notification
+ * ngân hàng vẫn đang nằm sẵn trong thanh thông báo, notification đó sẽ KHÔNG
+ * tự động được bắt trừ khi được quét chủ động. [onListenerConnected] xử lý
+ * đúng trường hợp này bằng [scanActiveNotifications], dùng
+ * [getActiveNotifications] để lấy lại những notification đang hiển thị sẵn.
+ * An toàn để chạy lại nhiều lần (mỗi lần service reconnect) vì fingerprint
+ * unique index (Phase 9) tự loại bỏ trùng lặp.
  */
 class BankNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         Log.i(TAG, "Notification listener connected")
+        instance = this
+        scanActiveNotifications()
     }
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         Log.i(TAG, "Notification listener disconnected")
+        if (instance === this) instance = null
+    }
+
+    fun scanActiveNotifications() {
+        val active = try {
+            activeNotifications
+        } catch (e: SecurityException) {
+            // Phòng trường hợp gọi trước khi hệ thống thực sự bind xong.
+            Log.w(TAG, "Không đọc được active notifications: ${e.message}")
+            return
+        }
+        for (sbn in active) {
+            handle(sbn)
+        }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -87,5 +113,22 @@ class BankNotificationListenerService : NotificationListenerService() {
 
     companion object {
         private const val TAG = "BankNotifListener"
+
+        /**
+         * Tham chiếu tới instance đang được hệ thống bind (null nếu chưa kết
+         * nối). Cho phép [NotificationMethodCallHandler] kích hoạt quét thủ
+         * công từ Flutter (nút "Quét lại thông báo đang hiển thị" ở Settings)
+         * mà không cần tự quản lý binding — NotificationListenerService vốn
+         * đã là service duy nhất theo package, không cần AIDL phức tạp.
+         */
+        @Volatile
+        private var instance: BankNotificationListenerService? = null
+
+        /** true nếu đã quét được (tức là listener đang kết nối), false nếu chưa. */
+        fun requestRescan(): Boolean {
+            val current = instance ?: return false
+            current.scanActiveNotifications()
+            return true
+        }
     }
 }

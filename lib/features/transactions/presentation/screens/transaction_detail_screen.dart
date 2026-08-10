@@ -7,18 +7,44 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../../../models/transaction.dart';
 import '../../../../models/transaction_type.dart';
 import '../../../../providers/database_providers.dart';
+import '../../../../providers/supabase_providers.dart';
 import '../../../dashboard/providers/dashboard_summary_provider.dart';
 import '../../providers/transaction_list_provider.dart';
 
-/// Chi tiết một giao dịch (section 9). Có tùy chọn xóa giao dịch.
-class TransactionDetailScreen extends ConsumerWidget {
+/// Chi tiết một giao dịch (section 9). Có tùy chọn xóa giao dịch, và ghi chú
+/// cá nhân đồng bộ qua Supabase (Phase 11).
+class TransactionDetailScreen extends ConsumerStatefulWidget {
   const TransactionDetailScreen({super.key, required this.transaction});
 
   final Transaction transaction;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isIncome = transaction.type == TransactionType.income;
+  ConsumerState<TransactionDetailScreen> createState() => _TransactionDetailScreenState();
+}
+
+class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScreen> {
+  late final TextEditingController _noteController;
+  late Transaction _transaction;
+  bool _savingNote = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _transaction = widget.transaction;
+    _noteController = TextEditingController(text: _transaction.note);
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  bool get _noteChanged => _noteController.text != _transaction.note;
+
+  @override
+  Widget build(BuildContext context) {
+    final isIncome = _transaction.type == TransactionType.income;
     final color = isIncome ? AppColors.income : AppColors.expense;
 
     return Scaffold(
@@ -38,9 +64,9 @@ class TransactionDetailScreen extends ConsumerWidget {
           Center(
             child: Text(
               CurrencyFormatter.formatSigned(
-                transaction.amount,
+                _transaction.amount,
                 isIncome: isIncome,
-                currency: transaction.currency,
+                currency: _transaction.currency,
               ),
               style: Theme.of(
                 context,
@@ -56,20 +82,20 @@ class TransactionDetailScreen extends ConsumerWidget {
                   _DetailRow(label: 'Loại', value: isIncome ? 'Tiền vào' : 'Tiền ra'),
                   _DetailRow(
                     label: 'Thời gian',
-                    value: AppDateFormatter.formatDateTime(transaction.transactionTime),
+                    value: AppDateFormatter.formatDateTime(_transaction.transactionTime),
                   ),
-                  _DetailRow(label: 'Tài khoản', value: transaction.account ?? '—'),
+                  _DetailRow(label: 'Tài khoản', value: _transaction.account ?? '—'),
                   _DetailRow(
                     label: 'Số dư sau giao dịch',
-                    value: transaction.balanceAfter != null
+                    value: _transaction.balanceAfter != null
                         ? CurrencyFormatter.format(
-                            transaction.balanceAfter!,
-                            currency: transaction.currency,
+                            _transaction.balanceAfter!,
+                            currency: _transaction.currency,
                           )
                         : '—',
                   ),
-                  if (transaction.transactionCode != null)
-                    _DetailRow(label: 'Mã giao dịch', value: transaction.transactionCode!),
+                  if (_transaction.transactionCode != null)
+                    _DetailRow(label: 'Mã giao dịch', value: _transaction.transactionCode!),
                 ],
               ),
             ),
@@ -84,13 +110,95 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                transaction.description.isEmpty ? '(Không có nội dung)' : transaction.description,
+                _transaction.description.isEmpty
+                    ? '(Không có nội dung)'
+                    : _transaction.description,
               ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Text(
+                'Ghi chú của bạn',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 6),
+              Tooltip(
+                message:
+                    'Ghi chú được đồng bộ lên Supabase (chỉ note + số tiền/ngày, '
+                    'không gửi tài khoản hay nội dung notification gốc) để bạn '
+                    'xem/sửa được từ máy tính qua Supabase Table Editor.',
+                child: Icon(Icons.info_outline, size: 16, color: Colors.black45),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _noteController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'Ví dụ: tiền ăn trưa với đồng nghiệp...',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              onPressed: _noteChanged && !_savingNote ? () => _saveNote(context) : null,
+              icon: _savingNote
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined, size: 18),
+              label: const Text('Lưu ghi chú'),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _saveNote(BuildContext context) async {
+    final id = _transaction.id;
+    if (id == null) return;
+
+    setState(() => _savingNote = true);
+
+    final newNote = _noteController.text;
+    final repository = ref.read(transactionRepositoryProvider);
+    await repository.updateNote(id, newNote);
+
+    final updated = _transaction.copyWith(note: newNote);
+    setState(() {
+      _transaction = updated;
+      _savingNote = false;
+    });
+
+    ref.invalidate(allTransactionsProvider);
+
+    if (!context.mounted) return;
+
+    try {
+      await ref.read(noteSyncServiceProvider).pushNote(updated);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã lưu ghi chú và đồng bộ lên Supabase')));
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã lưu ghi chú local — đồng bộ Supabase thất bại: $error'),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -109,10 +217,10 @@ class TransactionDetailScreen extends ConsumerWidget {
       ),
     );
 
-    if (confirmed != true || transaction.id == null) return;
+    if (confirmed != true || _transaction.id == null) return;
 
     final repository = ref.read(transactionRepositoryProvider);
-    await repository.delete(transaction.id!);
+    await repository.delete(_transaction.id!);
     ref.invalidate(allTransactionsProvider);
     ref.invalidate(dashboardSummaryProvider);
 

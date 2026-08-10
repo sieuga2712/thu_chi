@@ -116,7 +116,7 @@ class TransactionParser {
       if (raw == null || raw.isEmpty) continue;
 
       final trimmed = _stopAtNextLabel(raw);
-      if (trimmed.isNotEmpty) return trimmed;
+      if (trimmed.isNotEmpty) return _stripReferenceCodePrefix(trimmed);
     }
     return null;
   }
@@ -125,6 +125,17 @@ class TransactionParser {
     final stopMatch = patterns.nextLabelPattern.firstMatch(captured);
     if (stopMatch == null) return captured.trim();
     return captured.substring(0, stopMatch.start).trim();
+  }
+
+  /// Một số bank (VietinBank QR) nhúng mã tham chiếu ngay trong nội dung,
+  /// dạng `<mã> QR - <nội dung thật>`. Bóc phần mã ra nếu khớp; giữ nguyên
+  /// description gốc nếu không khớp pattern nào (không ép buộc).
+  String _stripReferenceCodePrefix(String description) {
+    for (final pattern in patterns.descriptionPrefixStripPatterns) {
+      final cleaned = pattern.firstMatch(description)?.group(1)?.trim();
+      if (cleaned != null && cleaned.isNotEmpty) return cleaned;
+    }
+    return description;
   }
 
   DateTime? _matchDateTime(String content) {

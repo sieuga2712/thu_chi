@@ -104,6 +104,31 @@ void main() {
     expect(all.first.sourcePackage, 'com.vietinbank.ipay');
   });
 
+  group('Phase 11 - ghi chú cá nhân', () {
+    test('giao dịch mới insert có note rỗng mặc định', () async {
+      await repository.insert(sample());
+      final all = await repository.getTransactions();
+
+      expect(all.single.note, '');
+    });
+
+    test('updateNote cập nhật đúng note, không đụng các trường khác', () async {
+      await repository.insert(sample());
+      final inserted = (await repository.getTransactions()).single;
+
+      await repository.updateNote(inserted.id!, 'Tiền ăn trưa với đồng nghiệp');
+      final updated = await repository.getById(inserted.id!);
+
+      expect(updated!.note, 'Tiền ăn trưa với đồng nghiệp');
+      expect(updated.amount, inserted.amount);
+      expect(updated.description, inserted.description);
+    });
+
+    test('updateNote với id không tồn tại không crash', () async {
+      await expectLater(repository.updateNote(999999, 'ghi chú'), completes);
+    });
+  });
+
   group('Phase 9 - chống trùng lặp (fingerprint)', () {
     test('insert cùng một giao dịch hai lần chỉ lưu một bản ghi', () async {
       await repository.insert(sample());

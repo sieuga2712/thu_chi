@@ -8,17 +8,21 @@ import 'package:thu_chi/models/transaction.dart';
 import 'package:thu_chi/models/transaction_type.dart';
 import 'package:thu_chi/providers/database_providers.dart';
 import 'package:thu_chi/providers/notification_providers.dart';
+import 'package:thu_chi/providers/supabase_providers.dart';
 import 'package:thu_chi/repositories/drift_transaction_repository.dart';
 
 import '../../helpers/fake_native_notification_service.dart';
+import '../../helpers/fake_note_sync_service.dart';
 
 void main() {
   late AppDatabase db;
   late FakeNativeNotificationService fakeService;
+  late FakeNoteSyncService fakeNoteSync;
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     fakeService = FakeNativeNotificationService();
+    fakeNoteSync = FakeNoteSyncService();
   });
 
   tearDown(() async => db.close());
@@ -28,6 +32,7 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         nativeNotificationServiceProvider.overrideWithValue(fakeService),
+        noteSyncServiceProvider.overrideWithValue(fakeNoteSync),
       ],
       child: const MaterialApp(home: SettingsScreen()),
     );
@@ -87,6 +92,11 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
+    // Cuộn hẳn xuống đáy danh sách để tile chắc chắn nằm giữa khung hình
+    // (không chỉ vừa lọt vào rìa), tránh flaky khi tap ngay sau khi cuộn.
+    await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Xóa toàn bộ dữ liệu'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Xóa tất cả'));
@@ -96,17 +106,77 @@ void main() {
     expect(find.text('Đã xóa toàn bộ dữ liệu'), findsOneWidget);
   });
 
+  testWidgets('bấm quét lại thông báo đang hiển thị khi đã cấp quyền', (tester) async {
+    fakeService.rescanResult = true;
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Quét lại thông báo đang hiển thị'));
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+
+    expect(fakeService.rescanCallCount, 1);
+    expect(find.textContaining('Đã quét xong'), findsOneWidget);
+  });
+
+  testWidgets('bấm quét lại thông báo khi chưa cấp quyền báo lỗi rõ ràng', (tester) async {
+    fakeService.rescanResult = false;
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Quét lại thông báo đang hiển thị'));
+    await tester.pumpAndSettle();
+
+    expect(fakeService.rescanCallCount, 1);
+    expect(find.textContaining('không quét được'), findsOneWidget);
+  });
+
+  testWidgets('bấm đồng bộ ghi chú thành công báo đúng số lượng đã cập nhật', (tester) async {
+    fakeNoteSync.pullResult = 3;
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
+
+    expect(fakeNoteSync.pullCallCount, 1);
+    expect(find.textContaining('Đã cập nhật 3 ghi chú'), findsOneWidget);
+  });
+
+  testWidgets('bấm đồng bộ ghi chú khi không có gì mới báo rõ ràng', (tester) async {
+    fakeNoteSync.pullResult = 0;
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Không có ghi chú nào mới'), findsOneWidget);
+  });
+
+  testWidgets('bấm đồng bộ ghi chú khi lỗi mạng báo lỗi rõ ràng, không crash', (tester) async {
+    fakeNoteSync.pullError = Exception('network error');
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Đồng bộ thất bại'), findsOneWidget);
+  });
+
   testWidgets('mở dialog giới thiệu app', (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
-    // Mục "Giới thiệu" nằm cuối danh sách, cần cuộn tới vì ListView chỉ
-    // build các item đang hiển thị trong khung hình test.
-    await tester.dragUntilVisible(
-      find.textContaining('Giới thiệu'),
-      find.byType(ListView),
-      const Offset(0, -200),
-    );
+    // Mục "Giới thiệu" nằm cuối danh sách, cần cuộn hẳn xuống đáy vì
+    // ListView chỉ build các item đang hiển thị trong khung hình test.
+    await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+    await tester.pumpAndSettle();
     await tester.tap(find.textContaining('Giới thiệu'));
     await tester.pumpAndSettle();
 

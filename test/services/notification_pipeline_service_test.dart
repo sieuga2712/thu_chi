@@ -24,6 +24,12 @@ class _FakeTransactionRepository implements TransactionRepository {
 
   @override
   Future<void> deleteAll() async => saved.clear();
+
+  @override
+  Future<void> updateNote(int id, String note) async {
+    final index = saved.indexWhere((t) => t.id == id);
+    if (index != -1) saved[index] = saved[index].copyWith(note: note);
+  }
 }
 
 void main() {

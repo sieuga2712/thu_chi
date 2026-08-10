@@ -9,6 +9,7 @@ import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../providers/notification_providers.dart';
+import '../../../../providers/supabase_providers.dart';
 import '../../../../services/csv_transaction_codec.dart';
 import '../../../dashboard/providers/dashboard_summary_provider.dart';
 import '../../../transactions/providers/transaction_list_provider.dart';
@@ -30,11 +31,36 @@ class SettingsScreen extends ConsumerWidget {
           _SectionLabel('Kiểm tra'),
           Card(
             margin: const EdgeInsets.only(top: 8),
+            child: Column(
+              children: [
+                SettingsActionTile(
+                  icon: Icons.science_outlined,
+                  title: 'Gửi thông báo thử nghiệm',
+                  subtitle: 'Kiểm tra parser mà không cần thông báo VietinBank thật',
+                  onTap: () => _sendTestNotification(context, ref),
+                ),
+                const Divider(height: 1),
+                SettingsActionTile(
+                  icon: Icons.refresh,
+                  title: 'Quét lại thông báo đang hiển thị',
+                  subtitle:
+                      'Bắt lại giao dịch có notification vẫn còn trong thanh thông báo '
+                      '(ví dụ vừa cấp quyền hoặc vừa cấu hình package)',
+                  onTap: () => _rescanActiveNotifications(context, ref),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _SectionLabel('Ghi chú'),
+          Card(
+            margin: const EdgeInsets.only(top: 8),
             child: SettingsActionTile(
-              icon: Icons.science_outlined,
-              title: 'Gửi thông báo thử nghiệm',
-              subtitle: 'Kiểm tra parser mà không cần thông báo VietinBank thật',
-              onTap: () => _sendTestNotification(context, ref),
+              icon: Icons.cloud_sync_outlined,
+              title: 'Đồng bộ ghi chú từ Supabase',
+              subtitle:
+                  'Kéo ghi chú vừa sửa trên máy tính (qua Supabase Table Editor) về máy này',
+              onTap: () => _pullNotes(context, ref),
             ),
           ),
           const SizedBox(height: 24),
@@ -89,6 +115,52 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _rescanActiveNotifications(BuildContext context, WidgetRef ref) async {
+    final service = ref.read(nativeNotificationServiceProvider);
+    final ok = await service.rescanActiveNotifications();
+
+    if (!context.mounted) return;
+
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chưa cấp quyền đọc thông báo, không quét được')),
+      );
+      return;
+    }
+
+    // Đợi một nhịp để pipeline (EventChannel -> parser -> insert) kịp xử lý
+    // trước khi làm mới danh sách, vì quét là bất đồng bộ ở phía native.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    ref.invalidate(allTransactionsProvider);
+    ref.invalidate(dashboardSummaryProvider);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã quét xong — kiểm tra tab Giao dịch')),
+      );
+    }
+  }
+
+  Future<void> _pullNotes(BuildContext context, WidgetRef ref) async {
+    try {
+      final appliedCount = await ref.read(noteSyncServiceProvider).pullAllNotes();
+      ref.invalidate(allTransactionsProvider);
+
+      if (context.mounted) {
+        final message = appliedCount > 0
+            ? 'Đã cập nhật $appliedCount ghi chú từ Supabase'
+            : 'Không có ghi chú nào mới để đồng bộ';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Đồng bộ thất bại: $error')));
+      }
+    }
+  }
+
   Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -131,26 +203,45 @@ class SettingsScreen extends ConsumerWidget {
       return;
     }
 
-    final csvContent = CsvTransactionCodec.encode(transactions);
-    final fileName = 'thu_chi_export_${DateTime.now().millisecondsSinceEpoch}.csv';
+    try {
+      final csvContent = CsvTransactionCodec.encode(transactions);
+      final fileName = 'thu_chi_export_${DateTime.now().millisecondsSinceEpoch}.csv';
 
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile.fromData(utf8.encode(csvContent), mimeType: 'text/csv')],
-        fileNameOverrides: [fileName],
-        subject: fileName,
-      ),
-    );
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile.fromData(utf8.encode(csvContent), mimeType: 'text/csv')],
+          fileNameOverrides: [fileName],
+          subject: fileName,
+        ),
+      );
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không thể chia sẻ file: $error')));
+      }
+    }
   }
 
   Future<void> _importCsv(BuildContext context, WidgetRef ref) async {
     const typeGroup = XTypeGroup(label: 'CSV', extensions: ['csv']);
-    final file = await openFile(acceptedTypeGroups: [typeGroup]);
-    if (file == null) return;
 
-    final content = await file.readAsString();
+    final XFile? file;
+    final String content;
+    try {
+      file = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (file == null) return;
+      content = await file.readAsString();
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không thể đọc file: $error')));
+      }
+      return;
+    }
+
     final transactions = CsvTransactionCodec.decode(content);
-
     if (transactions.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -161,16 +252,22 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     final repository = ref.read(transactionRepositoryProvider);
+    final countBefore = (await repository.getTransactions()).length;
     for (final transaction in transactions) {
       await repository.insert(transaction);
     }
+    final countAfter = (await repository.getTransactions()).length;
+    final addedCount = countAfter - countBefore;
+    final skippedCount = transactions.length - addedCount;
+
     ref.invalidate(allTransactionsProvider);
     ref.invalidate(dashboardSummaryProvider);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Đã import ${transactions.length} giao dịch')));
+      final message = skippedCount > 0
+          ? 'Đã thêm $addedCount giao dịch mới (bỏ qua $skippedCount giao dịch trùng lặp)'
+          : 'Đã thêm $addedCount giao dịch mới';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 

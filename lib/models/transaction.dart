@@ -19,6 +19,7 @@ class Transaction extends Equatable {
     this.account,
     this.balanceAfter,
     this.transactionCode,
+    this.note = '',
   });
 
   /// null với giao dịch mới được parser tạo ra, chưa lưu vào SQLite; có giá
@@ -48,7 +49,11 @@ class Transaction extends Equatable {
   final String rawNotification;
   final String sourcePackage;
 
-  Transaction copyWith({int? id}) {
+  /// Ghi chú cá nhân do người dùng tự gõ (Phase 11). Rỗng nếu chưa ghi gì —
+  /// KHÔNG dùng null để tránh nhập nhằng khi cập nhật qua [copyWith].
+  final String note;
+
+  Transaction copyWith({int? id, String? note}) {
     return Transaction(
       id: id ?? this.id,
       type: type,
@@ -61,6 +66,7 @@ class Transaction extends Equatable {
       transactionCode: transactionCode,
       rawNotification: rawNotification,
       sourcePackage: sourcePackage,
+      note: note ?? this.note,
     );
   }
 
@@ -77,5 +83,6 @@ class Transaction extends Equatable {
         transactionCode,
         rawNotification,
         sourcePackage,
+        note,
       ];
 }

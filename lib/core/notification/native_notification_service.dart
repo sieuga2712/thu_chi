@@ -67,4 +67,18 @@ class NativeNotificationService {
       },
     );
   }
+
+  /// Quét lại các notification NGÂN HÀNG đang hiển thị sẵn trong thanh thông
+  /// báo (không chỉ notification mới phát sinh) — hữu ích khi người dùng vừa
+  /// cấp quyền/cấu hình package trong lúc một notification giao dịch vẫn còn
+  /// nằm đó, nếu không thì [onNotificationPosted] sẽ bỏ lỡ nó vĩnh viễn.
+  ///
+  /// Trả về true nếu quét được (listener đang kết nối), false nếu chưa cấp
+  /// quyền notification access.
+  Future<bool> rescanActiveNotifications() async {
+    final ok = await NotificationChannels.method.invokeMethod<bool>(
+      ChannelConstants.methodRescanActiveNotifications,
+    );
+    return ok ?? false;
+  }
 }

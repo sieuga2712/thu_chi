@@ -33,6 +33,15 @@ class NotificationMethodCallHandler(
                 result.success(handleSendTestNotification(call))
             }
 
+            NotificationConfig.METHOD_RESCAN_ACTIVE_NOTIFICATIONS -> {
+                // Quét lại các notification NGÂN HÀNG đang hiển thị sẵn trong
+                // thanh thông báo (không chỉ notification mới) — hữu ích khi
+                // người dùng vừa cấp quyền hoặc vừa cấu hình package trong
+                // lúc một notification giao dịch vẫn còn nằm đó. Trả về false
+                // nếu listener chưa kết nối (ví dụ chưa cấp quyền).
+                result.success(BankNotificationListenerService.requestRescan())
+            }
+
             else -> result.notImplemented()
         }
     }
