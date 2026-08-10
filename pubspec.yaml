@@ -1,0 +1,56 @@
+name: thu_chi
+description: "Đọc thông báo biến động số dư VietinBank iPay và thống kê thu chi (chỉ local, offline)."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^3.4.2
+
+  # Local database
+  drift: ^2.34.3
+  path_provider: ^2.1.6
+  path: ^1.9.1
+
+  # Formatting
+  intl: ^0.20.3
+
+  # Dashboard charts
+  fl_chart: ^1.2.0
+
+  # CSV export/import (chọn file: xem ghi chú ở Phase 10 — file_picker 11.x
+  # hiện xung đột với Built-in Kotlin của Flutter 3.44 trên máy này)
+  csv: ^8.0.0
+
+  # Utilities
+  equatable: ^2.1.0
+  uuid: ^4.6.0
+
+  # App lock (PIN/biometric)
+  local_auth: ^3.0.2
+  shared_preferences: ^2.5.5
+  share_plus: ^13.3.0
+  file_selector: ^1.1.0
+  crypto: ^3.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # Code generation for the local database
+  drift_dev: ^2.34.0
+  build_runner: ^2.15.1
+
+flutter:
+  uses-material-design: true
