@@ -14,4 +14,12 @@ abstract class TransactionRepository {
   /// Cập nhật ghi chú cá nhân (Phase 11) cho giao dịch [id]. Không đụng đến
   /// bất kỳ trường nào khác của giao dịch.
   Future<void> updateNote(int id, String note);
+
+  /// Cập nhật nhóm chi tiêu cho giao dịch [id]. Không đụng đến bất kỳ trường
+  /// nào khác của giao dịch.
+  Future<void> updateCategory(int id, String category);
+
+  /// Danh sách các nhóm chi tiêu (khác rỗng) đã từng được gán, không trùng
+  /// lặp — dùng làm gợi ý tự động hoàn thành khi người dùng gõ nhóm mới.
+  Future<List<String>> getDistinctCategories();
 }

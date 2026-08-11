@@ -167,6 +167,18 @@ class $TransactionsTable extends Transactions
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -183,6 +195,7 @@ class $TransactionsTable extends Transactions
     createdAt,
     fingerprint,
     note,
+    category,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -300,6 +313,12 @@ class $TransactionsTable extends Transactions
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
     return context;
   }
 
@@ -367,6 +386,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
     );
   }
 
@@ -402,6 +425,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   /// `ALTER TABLE ADD COLUMN` kèm `DEFAULT ''` áp cho toàn bộ dòng cũ ngay,
   /// không cần backfill thủ công như [fingerprint].
   final String note;
+
+  /// Nhóm chi tiêu do người dùng tự gán (ví dụ "Ăn vặt", "Xăng xe") — nhập
+  /// tự do, chỉ lưu local, KHÔNG đồng bộ Supabase (khác [note]).
+  final String category;
   const TransactionRow({
     required this.id,
     required this.transactionType,
@@ -417,6 +444,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     required this.createdAt,
     this.fingerprint,
     required this.note,
+    required this.category,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -447,6 +475,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       map['fingerprint'] = Variable<String>(fingerprint);
     }
     map['note'] = Variable<String>(note);
+    map['category'] = Variable<String>(category);
     return map;
   }
 
@@ -474,6 +503,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ? const Value.absent()
           : Value(fingerprint),
       note: Value(note),
+      category: Value(category),
     );
   }
 
@@ -499,6 +529,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       fingerprint: serializer.fromJson<String?>(json['fingerprint']),
       note: serializer.fromJson<String>(json['note']),
+      category: serializer.fromJson<String>(json['category']),
     );
   }
   @override
@@ -519,6 +550,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'fingerprint': serializer.toJson<String?>(fingerprint),
       'note': serializer.toJson<String>(note),
+      'category': serializer.toJson<String>(category),
     };
   }
 
@@ -537,6 +569,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     DateTime? createdAt,
     Value<String?> fingerprint = const Value.absent(),
     String? note,
+    String? category,
   }) => TransactionRow(
     id: id ?? this.id,
     transactionType: transactionType ?? this.transactionType,
@@ -554,6 +587,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     createdAt: createdAt ?? this.createdAt,
     fingerprint: fingerprint.present ? fingerprint.value : this.fingerprint,
     note: note ?? this.note,
+    category: category ?? this.category,
   );
   TransactionRow copyWithCompanion(TransactionsCompanion data) {
     return TransactionRow(
@@ -587,6 +621,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ? data.fingerprint.value
           : this.fingerprint,
       note: data.note.present ? data.note.value : this.note,
+      category: data.category.present ? data.category.value : this.category,
     );
   }
 
@@ -606,7 +641,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('sourcePackage: $sourcePackage, ')
           ..write('createdAt: $createdAt, ')
           ..write('fingerprint: $fingerprint, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -627,6 +663,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     createdAt,
     fingerprint,
     note,
+    category,
   );
   @override
   bool operator ==(Object other) =>
@@ -645,7 +682,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.sourcePackage == this.sourcePackage &&
           other.createdAt == this.createdAt &&
           other.fingerprint == this.fingerprint &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.category == this.category);
 }
 
 class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
@@ -663,6 +701,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<DateTime> createdAt;
   final Value<String?> fingerprint;
   final Value<String> note;
+  final Value<String> category;
   const TransactionsCompanion({
     this.id = const Value.absent(),
     this.transactionType = const Value.absent(),
@@ -678,6 +717,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.createdAt = const Value.absent(),
     this.fingerprint = const Value.absent(),
     this.note = const Value.absent(),
+    this.category = const Value.absent(),
   });
   TransactionsCompanion.insert({
     this.id = const Value.absent(),
@@ -694,6 +734,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.createdAt = const Value.absent(),
     this.fingerprint = const Value.absent(),
     this.note = const Value.absent(),
+    this.category = const Value.absent(),
   }) : transactionType = Value(transactionType),
        amount = Value(amount),
        transactionTime = Value(transactionTime),
@@ -714,6 +755,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<DateTime>? createdAt,
     Expression<String>? fingerprint,
     Expression<String>? note,
+    Expression<String>? category,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -730,6 +772,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (fingerprint != null) 'fingerprint': fingerprint,
       if (note != null) 'note': note,
+      if (category != null) 'category': category,
     });
   }
 
@@ -748,6 +791,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<DateTime>? createdAt,
     Value<String?>? fingerprint,
     Value<String>? note,
+    Value<String>? category,
   }) {
     return TransactionsCompanion(
       id: id ?? this.id,
@@ -764,6 +808,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       createdAt: createdAt ?? this.createdAt,
       fingerprint: fingerprint ?? this.fingerprint,
       note: note ?? this.note,
+      category: category ?? this.category,
     );
   }
 
@@ -816,6 +861,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
     return map;
   }
 
@@ -835,7 +883,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('sourcePackage: $sourcePackage, ')
           ..write('createdAt: $createdAt, ')
           ..write('fingerprint: $fingerprint, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -875,6 +924,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<String?> fingerprint,
       Value<String> note,
+      Value<String> category,
     });
 typedef $$TransactionsTableUpdateCompanionBuilder =
     TransactionsCompanion Function({
@@ -892,6 +942,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<String?> fingerprint,
       Value<String> note,
+      Value<String> category,
     });
 
 class $$TransactionsTableFilterComposer
@@ -971,6 +1022,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1053,6 +1109,11 @@ class $$TransactionsTableOrderingComposer
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TransactionsTableAnnotationComposer
@@ -1122,6 +1183,9 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 }
 
 class $$TransactionsTableTableManager
@@ -1169,6 +1233,7 @@ class $$TransactionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fingerprint = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<String> category = const Value.absent(),
               }) => TransactionsCompanion(
                 id: id,
                 transactionType: transactionType,
@@ -1184,6 +1249,7 @@ class $$TransactionsTableTableManager
                 createdAt: createdAt,
                 fingerprint: fingerprint,
                 note: note,
+                category: category,
               ),
           createCompanionCallback:
               ({
@@ -1201,6 +1267,7 @@ class $$TransactionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fingerprint = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<String> category = const Value.absent(),
               }) => TransactionsCompanion.insert(
                 id: id,
                 transactionType: transactionType,
@@ -1216,6 +1283,7 @@ class $$TransactionsTableTableManager
                 createdAt: createdAt,
                 fingerprint: fingerprint,
                 note: note,
+                category: category,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

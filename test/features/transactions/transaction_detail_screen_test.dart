@@ -50,8 +50,11 @@ void main() {
     );
   }
 
-  testWidgets('nút Lưu ghi chú bị vô hiệu khi chưa sửa gì', (tester) async {
+  testWidgets('nút Lưu bị vô hiệu khi chưa sửa gì', (tester) async {
     await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
     await tester.pumpAndSettle();
 
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
@@ -62,14 +65,15 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'Tiền lì xì đầu năm');
+    await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('note_field')), 'Tiền lì xì đầu năm');
     await tester.pumpAndSettle();
 
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(button.onPressed, isNotNull);
 
-    await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
-    await tester.pumpAndSettle();
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -88,9 +92,9 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'Ghi chú offline');
-    await tester.pumpAndSettle();
     await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('note_field')), 'Ghi chú offline');
     await tester.pumpAndSettle();
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
@@ -99,5 +103,43 @@ void main() {
     final updated = await repo.getById(insertedTransaction.id!);
     expect(updated!.note, 'Ghi chú offline');
     expect(find.textContaining('đồng bộ Supabase thất bại'), findsOneWidget);
+  });
+
+  group('Nhóm chi tiêu', () {
+    testWidgets('gõ nhóm mới rồi lưu: cập nhật DB local, không đụng note, không gọi sync service', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('category_field')), 'Xăng xe');
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      final repo = DriftTransactionRepository(db);
+      final updated = await repo.getById(insertedTransaction.id!);
+      expect(updated!.category, 'Xăng xe');
+      expect(updated.note, '');
+
+      expect(fakeNoteSync.pushedNotes, isEmpty);
+      expect(find.textContaining('Đã lưu'), findsOneWidget);
+    });
+
+    testWidgets('bấm chip gợi ý điền luôn vào ô nhóm chi tiêu', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.fling(find.byType(ListView), const Offset(0, -2000), 3000);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ActionChip, 'Ăn vặt'));
+      await tester.pumpAndSettle();
+
+      final field = tester.widget<TextField>(find.byKey(const Key('category_field')));
+      expect(field.controller!.text, 'Ăn vặt');
+    });
   });
 }

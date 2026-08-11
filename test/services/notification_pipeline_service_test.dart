@@ -30,6 +30,17 @@ class _FakeTransactionRepository implements TransactionRepository {
     final index = saved.indexWhere((t) => t.id == id);
     if (index != -1) saved[index] = saved[index].copyWith(note: note);
   }
+
+  @override
+  Future<void> updateCategory(int id, String category) async {
+    final index = saved.indexWhere((t) => t.id == id);
+    if (index != -1) saved[index] = saved[index].copyWith(category: category);
+  }
+
+  @override
+  Future<List<String>> getDistinctCategories() async {
+    return saved.map((t) => t.category).where((c) => c.isNotEmpty).toSet().toList()..sort();
+  }
 }
 
 void main() {

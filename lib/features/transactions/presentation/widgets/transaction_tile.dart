@@ -44,9 +44,26 @@ class TransactionTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          Text(
-            AppDateFormatter.formatDateTime(transaction.transactionTime),
-            style: Theme.of(context).textTheme.bodySmall,
+          Row(
+            children: [
+              Text(
+                AppDateFormatter.formatDateTime(transaction.transactionTime),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (transaction.category.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                Text('•', style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    transaction.category,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

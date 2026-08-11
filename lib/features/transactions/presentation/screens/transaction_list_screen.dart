@@ -5,6 +5,7 @@ import '../../providers/transaction_list_provider.dart';
 import '../widgets/transaction_search_bar.dart';
 import '../widgets/transaction_tile.dart';
 import '../widgets/transaction_type_filter_bar.dart';
+import 'manual_transaction_entry_screen.dart';
 import 'transaction_detail_screen.dart';
 
 class TransactionListScreen extends ConsumerWidget {
@@ -16,6 +17,13 @@ class TransactionListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Giao dịch')),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Thêm giao dịch thủ công',
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ManualTransactionEntryScreen()),
+        ),
+        child: const Icon(Icons.add),
+      ),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(allTransactionsProvider),
         child: Column(

@@ -20,4 +20,9 @@ class AppConfig {
   static const Set<String> supportedPackages = <String>{
     'com.vietinbank.ipay',
   };
+
+  /// [Transaction.sourcePackage] gán cho giao dịch được người dùng tự thêm
+  /// bằng cách dán nội dung thông báo (màn hình "Thêm giao dịch thủ công"),
+  /// thay vì bắt tự động qua [NotificationListenerService].
+  static const String manualEntrySourcePackage = 'manual';
 }

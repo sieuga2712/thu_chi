@@ -129,6 +129,46 @@ void main() {
     });
   });
 
+  group('Nhóm chi tiêu (category)', () {
+    test('giao dịch mới insert có category rỗng mặc định', () async {
+      await repository.insert(sample());
+      final all = await repository.getTransactions();
+
+      expect(all.single.category, '');
+    });
+
+    test('updateCategory cập nhật đúng category, không đụng các trường khác', () async {
+      await repository.insert(sample());
+      final inserted = (await repository.getTransactions()).single;
+
+      await repository.updateCategory(inserted.id!, 'Xăng xe');
+      final updated = await repository.getById(inserted.id!);
+
+      expect(updated!.category, 'Xăng xe');
+      expect(updated.amount, inserted.amount);
+      expect(updated.note, inserted.note);
+    });
+
+    test('updateCategory với id không tồn tại không crash', () async {
+      await expectLater(repository.updateCategory(999999, 'nhóm'), completes);
+    });
+
+    test('getDistinctCategories trả về danh sách không trùng, đã sắp xếp, bỏ qua rỗng', () async {
+      await repository.insert(sample(time: DateTime(2026, 8, 1)));
+      await repository.insert(sample(time: DateTime(2026, 8, 2)));
+      await repository.insert(sample(time: DateTime(2026, 8, 3)));
+      final all = await repository.getTransactions();
+
+      await repository.updateCategory(all[0].id!, 'Xăng xe');
+      await repository.updateCategory(all[1].id!, 'Ăn vặt');
+      await repository.updateCategory(all[2].id!, 'Xăng xe');
+
+      final categories = await repository.getDistinctCategories();
+
+      expect(categories, ['Xăng xe', 'Ăn vặt']..sort());
+    });
+  });
+
   group('Phase 9 - chống trùng lặp (fingerprint)', () {
     test('insert cùng một giao dịch hai lần chỉ lưu một bản ghi', () async {
       await repository.insert(sample());

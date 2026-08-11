@@ -45,4 +45,8 @@ class Transactions extends Table {
   /// `ALTER TABLE ADD COLUMN` kèm `DEFAULT ''` áp cho toàn bộ dòng cũ ngay,
   /// không cần backfill thủ công như [fingerprint].
   TextColumn get note => text().withDefault(const Constant(''))();
+
+  /// Nhóm chi tiêu do người dùng tự gán (ví dụ "Ăn vặt", "Xăng xe") — nhập
+  /// tự do, chỉ lưu local, KHÔNG đồng bộ Supabase (khác [note]).
+  TextColumn get category => text().withDefault(const Constant(''))();
 }

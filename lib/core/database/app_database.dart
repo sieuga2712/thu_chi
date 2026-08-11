@@ -23,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -57,6 +57,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             // Phase 11: thêm cột note (ghi chú cá nhân, đồng bộ qua Supabase).
             await migrator.addColumn(transactions, transactions.note);
+          }
+          if (from < 4) {
+            // Thêm cột category (nhóm chi tiêu tự gán, chỉ lưu local).
+            await migrator.addColumn(transactions, transactions.category);
           }
         },
       );

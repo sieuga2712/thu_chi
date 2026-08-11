@@ -53,6 +53,24 @@ class DriftTransactionRepository implements TransactionRepository {
     );
   }
 
+  @override
+  Future<void> updateCategory(int id, String category) async {
+    await (_db.update(_db.transactions)..where((t) => t.id.equals(id))).write(
+      TransactionsCompanion(category: Value(category)),
+    );
+  }
+
+  @override
+  Future<List<String>> getDistinctCategories() async {
+    final query = _db.selectOnly(_db.transactions, distinct: true)
+      ..addColumns([_db.transactions.category])
+      ..where(_db.transactions.category.equals('').not());
+    final rows = await query.get();
+    final categories = rows.map((row) => row.read(_db.transactions.category)!).toList();
+    categories.sort();
+    return categories;
+  }
+
   domain.Transaction _toDomain(TransactionRow row) {
     return domain.Transaction(
       id: row.id,
@@ -67,6 +85,7 @@ class DriftTransactionRepository implements TransactionRepository {
       rawNotification: row.rawNotification,
       sourcePackage: row.sourcePackage,
       note: row.note,
+      category: row.category,
     );
   }
 
