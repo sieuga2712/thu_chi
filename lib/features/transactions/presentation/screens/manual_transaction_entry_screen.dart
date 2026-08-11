@@ -197,6 +197,10 @@ class _ManualTransactionEntryScreenState extends ConsumerState<ManualTransaction
               ],
             ),
           ],
+          // Đệm rỗng dưới cùng: một số máy có thanh cử chỉ/phím home ảo che
+          // mất nút Thêm giao dịch nếu cuộn hết xuống đáy mà không chừa
+          // khoảng trống.
+          SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );

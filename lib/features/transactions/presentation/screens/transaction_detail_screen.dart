@@ -211,6 +211,9 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
               label: const Text('Lưu'),
             ),
           ),
+          // Đệm rỗng dưới cùng: một số máy có thanh cử chỉ/phím home ảo che
+          // mất nút Lưu nếu cuộn hết xuống đáy mà không chừa khoảng trống.
+          SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );
