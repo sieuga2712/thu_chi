@@ -40,7 +40,11 @@ class DateRangeFilterBar extends ConsumerWidget {
     );
   }
 
-  Future<void> _onSelected(BuildContext context, WidgetRef ref, DateRangeType type) async {
+  Future<void> _onSelected(
+    BuildContext context,
+    WidgetRef ref,
+    DateRangeType type,
+  ) async {
     if (type != DateRangeType.custom) {
       ref.read(dashboardFilterProvider.notifier).setType(type);
       return;
@@ -51,11 +55,16 @@ class DateRangeFilterBar extends ConsumerWidget {
       context: context,
       firstDate: DateTime(now.year - 3),
       lastDate: now,
-      initialDateRange: DateTimeRange(start: now.subtract(const Duration(days: 7)), end: now),
+      initialDateRange: DateTimeRange(
+        start: now.subtract(const Duration(days: 7)),
+        end: now,
+      ),
     );
 
     if (range != null) {
-      ref.read(dashboardFilterProvider.notifier).setCustomRange(range.start, range.end);
+      ref
+          .read(dashboardFilterProvider.notifier)
+          .setCustomRange(range.start, range.end);
     }
   }
 }

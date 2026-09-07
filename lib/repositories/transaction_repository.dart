@@ -22,4 +22,9 @@ abstract class TransactionRepository {
   /// Danh sách các nhóm chi tiêu (khác rỗng) đã từng được gán, không trùng
   /// lặp — dùng làm gợi ý tự động hoàn thành khi người dùng gõ nhóm mới.
   Future<List<String>> getDistinctCategories();
+
+  /// Gỡ nhóm chi tiêu [category] khỏi mọi giao dịch đang dùng nó (đặt lại
+  /// thành rỗng), dùng khi người dùng xóa hẳn một tag ở màn hình quản lý.
+  /// Trả về số giao dịch bị ảnh hưởng.
+  Future<int> clearCategory(String category);
 }

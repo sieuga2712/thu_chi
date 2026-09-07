@@ -8,9 +8,11 @@ class TransactionQueryNotifier extends Notifier<TransactionQuery> {
 
   void setSearchText(String value) => state = state.copyWith(searchText: value);
 
-  void setTypeFilter(TransactionTypeFilter filter) => state = state.copyWith(typeFilter: filter);
+  void setTypeFilter(TransactionTypeFilter filter) =>
+      state = state.copyWith(typeFilter: filter);
 }
 
-final transactionQueryProvider = NotifierProvider<TransactionQueryNotifier, TransactionQuery>(
-  TransactionQueryNotifier.new,
-);
+final transactionQueryProvider =
+    NotifierProvider<TransactionQueryNotifier, TransactionQuery>(
+      TransactionQueryNotifier.new,
+    );

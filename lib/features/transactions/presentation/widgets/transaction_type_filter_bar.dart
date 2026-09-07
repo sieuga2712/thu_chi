@@ -24,13 +24,15 @@ class TransactionTypeFilterBar extends ConsumerWidget {
         ChoiceChip(
           label: const Text('Tiền vào'),
           selected: query.typeFilter == TransactionTypeFilter.income,
-          onSelected: (_) => notifier.setTypeFilter(TransactionTypeFilter.income),
+          onSelected: (_) =>
+              notifier.setTypeFilter(TransactionTypeFilter.income),
         ),
         const SizedBox(width: 8),
         ChoiceChip(
           label: const Text('Tiền ra'),
           selected: query.typeFilter == TransactionTypeFilter.expense,
-          onSelected: (_) => notifier.setTypeFilter(TransactionTypeFilter.expense),
+          onSelected: (_) =>
+              notifier.setTypeFilter(TransactionTypeFilter.expense),
         ),
       ],
     );

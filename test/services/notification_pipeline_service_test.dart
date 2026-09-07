@@ -41,6 +41,18 @@ class _FakeTransactionRepository implements TransactionRepository {
   Future<List<String>> getDistinctCategories() async {
     return saved.map((t) => t.category).where((c) => c.isNotEmpty).toSet().toList()..sort();
   }
+
+  @override
+  Future<int> clearCategory(String category) async {
+    var count = 0;
+    for (var i = 0; i < saved.length; i++) {
+      if (saved[i].category == category) {
+        saved[i] = saved[i].copyWith(category: '');
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 void main() {

@@ -27,43 +27,43 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (migrator) async {
-          await migrator.createAll();
-        },
-        onUpgrade: (migrator, from, to) async {
-          if (from < 2) {
-            // Phase 9: thêm cột fingerprint chống trùng lặp giao dịch.
-            // SQLite không cho ALTER TABLE ADD COLUMN kèm ràng buộc UNIQUE
-            // trên bảng đã có dữ liệu, nên thêm cột trước (nullable), backfill
-            // dữ liệu cũ, rồi mới tạo unique index riêng.
-            await migrator.addColumn(transactions, transactions.fingerprint);
+    onCreate: (migrator) async {
+      await migrator.createAll();
+    },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        // Phase 9: thêm cột fingerprint chống trùng lặp giao dịch.
+        // SQLite không cho ALTER TABLE ADD COLUMN kèm ràng buộc UNIQUE
+        // trên bảng đã có dữ liệu, nên thêm cột trước (nullable), backfill
+        // dữ liệu cũ, rồi mới tạo unique index riêng.
+        await migrator.addColumn(transactions, transactions.fingerprint);
 
-            final existingRows = await select(transactions).get();
-            for (final row in existingRows) {
-              final fingerprint = TransactionFingerprint.compute(
-                account: row.account,
-                amount: row.amount,
-                transactionTime: row.transactionTime,
-                description: row.description,
-                balanceAfter: row.balanceAfter,
-              );
-              await (update(transactions)..where((t) => t.id.equals(row.id))).write(
-                TransactionsCompanion(fingerprint: Value(fingerprint)),
-              );
-            }
+        final existingRows = await select(transactions).get();
+        for (final row in existingRows) {
+          final fingerprint = TransactionFingerprint.compute(
+            account: row.account,
+            amount: row.amount,
+            transactionTime: row.transactionTime,
+            description: row.description,
+            balanceAfter: row.balanceAfter,
+          );
+          await (update(transactions)..where((t) => t.id.equals(row.id))).write(
+            TransactionsCompanion(fingerprint: Value(fingerprint)),
+          );
+        }
 
-            await migrator.createIndex(transactionsFingerprintIdx);
-          }
-          if (from < 3) {
-            // Phase 11: thêm cột note (ghi chú cá nhân, đồng bộ qua Supabase).
-            await migrator.addColumn(transactions, transactions.note);
-          }
-          if (from < 4) {
-            // Thêm cột category (nhóm chi tiêu tự gán, chỉ lưu local).
-            await migrator.addColumn(transactions, transactions.category);
-          }
-        },
-      );
+        await migrator.createIndex(transactionsFingerprintIdx);
+      }
+      if (from < 3) {
+        // Phase 11: thêm cột note (ghi chú cá nhân, đồng bộ qua Supabase).
+        await migrator.addColumn(transactions, transactions.note);
+      }
+      if (from < 4) {
+        // Thêm cột category (nhóm chi tiêu tự gán, chỉ lưu local).
+        await migrator.addColumn(transactions, transactions.category);
+      }
+    },
+  );
 }
 
 // Từ package:sqlite3 v3.x, thư viện native SQLite được tự động bundle qua

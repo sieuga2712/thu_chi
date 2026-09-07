@@ -10,9 +10,11 @@ import 'transaction_parser.dart';
 /// (native đệm sẵn) lẫn luồng live (EventChannel) đều đi qua class này, để
 /// logic không bị lặp ở hai nơi.
 class NotificationPipelineService {
-  NotificationPipelineService({required TransactionRepository repository, TransactionParser? parser})
-    : _repository = repository,
-      _parser = parser ?? const TransactionParser();
+  NotificationPipelineService({
+    required TransactionRepository repository,
+    TransactionParser? parser,
+  }) : _repository = repository,
+       _parser = parser ?? const TransactionParser();
 
   final TransactionRepository _repository;
   final TransactionParser _parser;

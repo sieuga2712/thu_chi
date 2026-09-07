@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/retro_style.dart';
+
 /// Hiển thị khi chưa có đủ dữ liệu để vẽ biểu đồ (ví dụ mới cài app, chưa
 /// nhận notification nào).
 class EmptyChartPlaceholder extends StatelessWidget {
@@ -20,7 +22,11 @@ class EmptyChartPlaceholder extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black45),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black45,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 17,
+              ),
             ),
           ],
         ),

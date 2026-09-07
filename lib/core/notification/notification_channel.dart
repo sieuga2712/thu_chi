@@ -7,6 +7,8 @@ import '../constants/channel_constants.dart';
 class NotificationChannels {
   NotificationChannels._();
 
-  static const MethodChannel method = MethodChannel(ChannelConstants.methodChannel);
+  static const MethodChannel method = MethodChannel(
+    ChannelConstants.methodChannel,
+  );
   static const EventChannel event = EventChannel(ChannelConstants.eventChannel);
 }

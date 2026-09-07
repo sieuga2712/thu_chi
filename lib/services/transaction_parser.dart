@@ -41,8 +41,13 @@ class TransactionParser {
     final account = _matchFirst(content, patterns.accountPatterns);
     final description = _matchDescription(content) ?? '';
     final balanceRaw = _matchFirst(content, patterns.balancePatterns);
-    final balanceAfter = balanceRaw != null ? AmountParser.parse(balanceRaw) : null;
-    final transactionCode = _matchFirst(content, patterns.transactionCodePatterns);
+    final balanceAfter = balanceRaw != null
+        ? AmountParser.parse(balanceRaw)
+        : null;
+    final transactionCode = _matchFirst(
+      content,
+      patterns.transactionCodePatterns,
+    );
     final transactionTime = _matchDateTime(content) ?? notification.postTime;
 
     return Transaction(
@@ -150,7 +155,11 @@ class TransactionParser {
       final minute = int.tryParse(match.group(5) ?? '');
       final second = int.tryParse(match.group(6) ?? '') ?? 0;
 
-      if (day == null || month == null || year == null || hour == null || minute == null) {
+      if (day == null ||
+          month == null ||
+          year == null ||
+          hour == null ||
+          minute == null) {
         continue;
       }
       if (month < 1 || month > 12 || day < 1 || day > 31) continue;
@@ -185,7 +194,11 @@ class TransactionParser {
 }
 
 class _AmountMatch {
-  const _AmountMatch({required this.amount, required this.type, required this.currency});
+  const _AmountMatch({
+    required this.amount,
+    required this.type,
+    required this.currency,
+  });
 
   final int amount;
   final TransactionType? type;

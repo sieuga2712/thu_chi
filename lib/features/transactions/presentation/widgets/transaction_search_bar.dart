@@ -7,7 +7,8 @@ class TransactionSearchBar extends ConsumerStatefulWidget {
   const TransactionSearchBar({super.key});
 
   @override
-  ConsumerState<TransactionSearchBar> createState() => _TransactionSearchBarState();
+  ConsumerState<TransactionSearchBar> createState() =>
+      _TransactionSearchBarState();
 }
 
 class _TransactionSearchBarState extends ConsumerState<TransactionSearchBar> {
@@ -16,7 +17,9 @@ class _TransactionSearchBarState extends ConsumerState<TransactionSearchBar> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: ref.read(transactionQueryProvider).searchText);
+    _controller = TextEditingController(
+      text: ref.read(transactionQueryProvider).searchText,
+    );
   }
 
   @override
@@ -34,7 +37,8 @@ class _TransactionSearchBarState extends ConsumerState<TransactionSearchBar> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
-      onChanged: (value) => ref.read(transactionQueryProvider.notifier).setSearchText(value),
+      onChanged: (value) =>
+          ref.read(transactionQueryProvider.notifier).setSearchText(value),
       decoration: InputDecoration(
         hintText: 'Tìm theo nội dung, số tiền, tài khoản...',
         prefixIcon: const Icon(Icons.search),

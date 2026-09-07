@@ -11,10 +11,15 @@ class DashboardFilterNotifier extends Notifier<DateRangeFilter> {
   }
 
   void setCustomRange(DateTime start, DateTime end) {
-    state = DateRangeFilter(type: DateRangeType.custom, customStart: start, customEnd: end);
+    state = DateRangeFilter(
+      type: DateRangeType.custom,
+      customStart: start,
+      customEnd: end,
+    );
   }
 }
 
-final dashboardFilterProvider = NotifierProvider<DashboardFilterNotifier, DateRangeFilter>(
-  DashboardFilterNotifier.new,
-);
+final dashboardFilterProvider =
+    NotifierProvider<DashboardFilterNotifier, DateRangeFilter>(
+      DashboardFilterNotifier.new,
+    );

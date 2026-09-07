@@ -66,9 +66,18 @@ class DriftTransactionRepository implements TransactionRepository {
       ..addColumns([_db.transactions.category])
       ..where(_db.transactions.category.equals('').not());
     final rows = await query.get();
-    final categories = rows.map((row) => row.read(_db.transactions.category)!).toList();
+    final categories = rows
+        .map((row) => row.read(_db.transactions.category)!)
+        .toList();
     categories.sort();
     return categories;
+  }
+
+  @override
+  Future<int> clearCategory(String category) async {
+    return (_db.update(_db.transactions)
+          ..where((t) => t.category.equals(category)))
+        .write(const TransactionsCompanion(category: Value('')));
   }
 
   domain.Transaction _toDomain(TransactionRow row) {

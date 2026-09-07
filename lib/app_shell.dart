@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'features/activity/presentation/screens/achievements_screen.dart';
+import 'features/activity/presentation/screens/activity_screen.dart';
 import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/settings/presentation/screens/settings_screen.dart';
 import 'features/transactions/presentation/screens/transaction_list_screen.dart';
 import 'providers/nav_provider.dart';
 import 'providers/notification_pipeline_provider.dart';
 
-/// Scaffold gốc: điều hướng bottom navigation giữa ba tab chính.
+/// Scaffold gốc: điều hướng bottom navigation giữa các tab chính.
 ///
-/// Tổng quan | Giao dịch | Cài đặt
+/// Tổng quan | Giao dịch | Hoạt động | Thành tựu | Cài đặt
 class AppShell extends ConsumerWidget {
   const AppShell({super.key});
 
   static const _screens = <Widget>[
     DashboardScreen(),
     TransactionListScreen(),
+    ActivityScreen(),
+    AchievementsScreen(),
     SettingsScreen(),
   ];
 
@@ -44,6 +48,16 @@ class AppShell extends ConsumerWidget {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Giao dịch',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.timer_outlined),
+            selectedIcon: Icon(Icons.timer),
+            label: 'Hoạt động',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emoji_events_outlined),
+            selectedIcon: Icon(Icons.emoji_events),
+            label: 'Thành tựu',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

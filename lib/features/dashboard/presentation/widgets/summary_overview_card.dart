@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../models/dashboard_summary.dart';
 import '../../models/date_range_filter.dart';
@@ -9,7 +10,11 @@ import 'stat_card.dart';
 /// Khối "TỔNG QUAN" — 4 ô thống kê Tiền vào / Tiền ra / Chênh lệch / Số giao
 /// dịch, xem mockup ở section 7 của spec.
 class SummaryOverviewCard extends StatelessWidget {
-  const SummaryOverviewCard({super.key, required this.summary, required this.filter});
+  const SummaryOverviewCard({
+    super.key,
+    required this.summary,
+    required this.filter,
+  });
 
   final DashboardSummary summary;
   final DateRangeFilter filter;
@@ -25,9 +30,12 @@ class SummaryOverviewCard extends StatelessWidget {
           children: [
             Text(
               'TỔNG QUAN',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 22,
+              ),
             ),
             const SizedBox(width: 8),
             Chip(
@@ -44,7 +52,10 @@ class SummaryOverviewCard extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.6,
+          // Trước là 1.6 nhưng font VT323 (label/value) cao hơn font mặc định,
+          // làm nội dung StatCard tràn khỏi khung cố định — hạ tỷ lệ để ô cao
+          // hơn, đủ chỗ chứa.
+          childAspectRatio: 1.35,
           children: [
             StatCard(
               label: 'Tiền vào',
@@ -60,7 +71,10 @@ class SummaryOverviewCard extends StatelessWidget {
             ),
             StatCard(
               label: 'Chênh lệch',
-              value: CurrencyFormatter.formatSigned(summary.net.abs(), isIncome: isNetPositive),
+              value: CurrencyFormatter.formatSigned(
+                summary.net.abs(),
+                isIncome: isNetPositive,
+              ),
               icon: isNetPositive ? Icons.trending_up : Icons.trending_down,
               color: isNetPositive ? AppColors.income : AppColors.expense,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 
 class ChartLegend extends StatelessWidget {
   const ChartLegend({super.key});
@@ -35,7 +36,13 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontFamily: RetroStyle.fontFamily,
+            fontSize: 15,
+          ),
+        ),
       ],
     );
   }

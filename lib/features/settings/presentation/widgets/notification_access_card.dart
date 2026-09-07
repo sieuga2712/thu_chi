@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 import '../../../../providers/notification_providers.dart';
 import '../../../notification_access/providers/notification_access_provider.dart';
 
@@ -12,7 +13,8 @@ class NotificationAccessCard extends ConsumerStatefulWidget {
   const NotificationAccessCard({super.key});
 
   @override
-  ConsumerState<NotificationAccessCard> createState() => _NotificationAccessCardState();
+  ConsumerState<NotificationAccessCard> createState() =>
+      _NotificationAccessCardState();
 }
 
 class _NotificationAccessCardState extends ConsumerState<NotificationAccessCard>
@@ -44,7 +46,8 @@ class _NotificationAccessCardState extends ConsumerState<NotificationAccessCard>
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: grantedAsync.when(
-          data: (granted) => granted ? _buildGranted(context) : _buildNotGranted(context),
+          data: (granted) =>
+              granted ? _buildGranted(context) : _buildNotGranted(context),
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Center(child: CircularProgressIndicator()),
@@ -63,9 +66,12 @@ class _NotificationAccessCardState extends ConsumerState<NotificationAccessCard>
         Expanded(
           child: Text(
             'Đang theo dõi thông báo',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.income, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.income,
+              fontWeight: FontWeight.bold,
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 22,
+            ),
           ),
         ),
       ],
@@ -86,6 +92,8 @@ class _NotificationAccessCardState extends ConsumerState<NotificationAccessCard>
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.expense,
                   fontWeight: FontWeight.bold,
+                  fontFamily: RetroStyle.fontFamily,
+                  fontSize: 22,
                 ),
               ),
             ),
@@ -95,7 +103,10 @@ class _NotificationAccessCardState extends ConsumerState<NotificationAccessCard>
         Text(
           'App cần quyền này để đọc thông báo biến động số dư từ VietinBank iPay. '
           'App không đăng nhập, không lưu mật khẩu ngân hàng.',
-          style: Theme.of(context).textTheme.bodySmall,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontFamily: RetroStyle.fontFamily,
+            fontSize: 16,
+          ),
         ),
         const SizedBox(height: 12),
         FilledButton(

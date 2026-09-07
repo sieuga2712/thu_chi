@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/retro_style.dart';
+
 /// Một ô thống kê trong lưới "TỔNG QUAN" (Tiền vào / Tiền ra / Chênh lệch /
 /// Số giao dịch).
 class StatCard extends StatelessWidget {
@@ -27,17 +29,16 @@ class StatCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: color.withValues(alpha: 0.12),
-                  foregroundColor: color,
-                  child: Icon(icon, size: 18),
-                ),
+                RetroIconBadge(icon: icon, color: color, size: 32, iconSize: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     label,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.black54,
+                      fontFamily: RetroStyle.fontFamily,
+                      fontSize: 16,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -50,9 +51,12 @@ class StatCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 value,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  fontFamily: RetroStyle.fontFamily,
+                  fontSize: 28,
+                ),
               ),
             ),
           ],

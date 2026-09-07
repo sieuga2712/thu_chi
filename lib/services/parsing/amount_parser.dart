@@ -28,7 +28,8 @@ class AmountParser {
     }
 
     final fractionDigits = numericOnly.length - lastSeparatorIndex - 1;
-    final looksLikeDecimalSeparator = fractionDigits == 1 || fractionDigits == 2;
+    final looksLikeDecimalSeparator =
+        fractionDigits == 1 || fractionDigits == 2;
 
     final integerPartRaw = looksLikeDecimalSeparator
         ? numericOnly.substring(0, lastSeparatorIndex)

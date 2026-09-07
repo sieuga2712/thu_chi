@@ -7,14 +7,17 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../providers/notification_providers.dart';
 import '../../../../providers/supabase_providers.dart';
 import '../../../../services/csv_transaction_codec.dart';
 import '../../../dashboard/providers/dashboard_summary_provider.dart';
 import '../../../transactions/providers/transaction_list_provider.dart';
+import '../../../budget/presentation/screens/budget_screen.dart';
 import '../widgets/notification_access_card.dart';
 import '../widgets/settings_action_tile.dart';
+import 'category_management_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -36,7 +39,8 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsActionTile(
                   icon: Icons.science_outlined,
                   title: 'Gửi thông báo thử nghiệm',
-                  subtitle: 'Kiểm tra parser mà không cần thông báo VietinBank thật',
+                  subtitle:
+                      'Kiểm tra parser mà không cần thông báo VietinBank thật',
                   onTap: () => _sendTestNotification(context, ref),
                 ),
                 const Divider(height: 1),
@@ -61,6 +65,35 @@ class SettingsScreen extends ConsumerWidget {
               subtitle:
                   'Kéo ghi chú vừa sửa trên máy tính (qua Supabase Table Editor) về máy này',
               onTap: () => _pullNotes(context, ref),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _SectionLabel('Giao dịch'),
+          Card(
+            margin: const EdgeInsets.only(top: 8),
+            child: Column(
+              children: [
+                SettingsActionTile(
+                  icon: Icons.sell_outlined,
+                  title: 'Quản lý nhóm chi tiêu',
+                  subtitle:
+                      'Xem và xóa các tag nhóm chi tiêu không còn dùng nữa',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CategoryManagementScreen(),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                SettingsActionTile(
+                  icon: Icons.pie_chart_outline,
+                  title: 'Ngân sách',
+                  subtitle: 'Đặt hạn mức chi tiêu theo Ngày/Tuần/Tháng',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BudgetScreen()),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
@@ -105,17 +138,25 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _sendTestNotification(BuildContext context, WidgetRef ref) async {
+  Future<void> _sendTestNotification(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final service = ref.read(nativeNotificationServiceProvider);
     await service.sendTestNotification();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã gửi thông báo thử nghiệm — kiểm tra tab Giao dịch')),
+        const SnackBar(
+          content: Text('Đã gửi thông báo thử nghiệm — kiểm tra tab Giao dịch'),
+        ),
       );
     }
   }
 
-  Future<void> _rescanActiveNotifications(BuildContext context, WidgetRef ref) async {
+  Future<void> _rescanActiveNotifications(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final service = ref.read(nativeNotificationServiceProvider);
     final ok = await service.rescanActiveNotifications();
 
@@ -123,7 +164,9 @@ class SettingsScreen extends ConsumerWidget {
 
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa cấp quyền đọc thông báo, không quét được')),
+        const SnackBar(
+          content: Text('Chưa cấp quyền đọc thông báo, không quét được'),
+        ),
       );
       return;
     }
@@ -143,14 +186,18 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _pullNotes(BuildContext context, WidgetRef ref) async {
     try {
-      final appliedCount = await ref.read(noteSyncServiceProvider).pullAllNotes();
+      final appliedCount = await ref
+          .read(noteSyncServiceProvider)
+          .pullAllNotes();
       ref.invalidate(allTransactionsProvider);
 
       if (context.mounted) {
         final message = appliedCount > 0
             ? 'Đã cập nhật $appliedCount ghi chú từ Supabase'
             : 'Không có ghi chú nào mới để đồng bộ';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (error) {
       if (context.mounted) {
@@ -170,10 +217,16 @@ class SettingsScreen extends ConsumerWidget {
           'Toàn bộ giao dịch đã lưu trên máy sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Hủy')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Hủy'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Xóa tất cả', style: TextStyle(color: AppColors.expense)),
+            child: const Text(
+              'Xóa tất cả',
+              style: TextStyle(color: AppColors.expense),
+            ),
           ),
         ],
       ),
@@ -193,32 +246,37 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
-    final transactions = await ref.read(transactionRepositoryProvider).getTransactions();
+    final transactions = await ref
+        .read(transactionRepositoryProvider)
+        .getTransactions();
     if (transactions.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Chưa có giao dịch nào để export')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Chưa có giao dịch nào để export')),
+        );
       }
       return;
     }
 
     try {
       final csvContent = CsvTransactionCodec.encode(transactions);
-      final fileName = 'thu_chi_export_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final fileName =
+          'thu_chi_export_${DateTime.now().millisecondsSinceEpoch}.csv';
 
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile.fromData(utf8.encode(csvContent), mimeType: 'text/csv')],
+          files: [
+            XFile.fromData(utf8.encode(csvContent), mimeType: 'text/csv'),
+          ],
           fileNameOverrides: [fileName],
           subject: fileName,
         ),
       );
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Không thể chia sẻ file: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể chia sẻ file: $error')),
+        );
       }
     }
   }
@@ -244,9 +302,11 @@ class SettingsScreen extends ConsumerWidget {
     final transactions = CsvTransactionCodec.decode(content);
     if (transactions.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Không đọc được giao dịch nào từ file này')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không đọc được giao dịch nào từ file này'),
+          ),
+        );
       }
       return;
     }
@@ -267,7 +327,9 @@ class SettingsScreen extends ConsumerWidget {
       final message = skippedCount > 0
           ? 'Đã thêm $addedCount giao dịch mới (bỏ qua $skippedCount giao dịch trùng lặp)'
           : 'Đã thêm $addedCount giao dịch mới';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -299,7 +361,11 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.black54),
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        color: Colors.black54,
+        fontFamily: RetroStyle.fontFamily,
+        fontSize: 18,
+      ),
     );
   }
 }

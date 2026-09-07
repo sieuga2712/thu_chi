@@ -12,9 +12,12 @@ class ChannelConstants {
   static const String eventChannel = 'com.thuchi.thu_chi/notification_events';
 
   // Tên các method của MethodChannel.
-  static const String methodIsNotificationAccessGranted = 'isNotificationAccessGranted';
-  static const String methodOpenNotificationSettings = 'openNotificationSettings';
+  static const String methodIsNotificationAccessGranted =
+      'isNotificationAccessGranted';
+  static const String methodOpenNotificationSettings =
+      'openNotificationSettings';
   static const String methodGetPendingNotifications = 'getPendingNotifications';
   static const String methodSendTestNotification = 'sendTestNotification';
-  static const String methodRescanActiveNotifications = 'rescanActiveNotifications';
+  static const String methodRescanActiveNotifications =
+      'rescanActiveNotifications';
 }

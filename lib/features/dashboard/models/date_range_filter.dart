@@ -14,12 +14,12 @@ class DateRangeFilter {
   static const initial = DateRangeFilter(type: DateRangeType.thisMonth);
 
   String get label => switch (type) {
-        DateRangeType.today => 'Hôm nay',
-        DateRangeType.last7Days => '7 ngày',
-        DateRangeType.thisMonth => 'Tháng này',
-        DateRangeType.lastMonth => 'Tháng trước',
-        DateRangeType.custom => 'Tùy chọn',
-      };
+    DateRangeType.today => 'Hôm nay',
+    DateRangeType.last7Days => '7 ngày',
+    DateRangeType.thisMonth => 'Tháng này',
+    DateRangeType.lastMonth => 'Tháng trước',
+    DateRangeType.custom => 'Tùy chọn',
+  };
 
   /// Trả về khoảng [start, end) — start bao gồm, end không bao gồm — tính
   /// theo [now] (truyền vào để test dễ, mặc định dùng DateTime.now()).
@@ -46,7 +46,8 @@ class DateRangeFilter {
         return (start, end);
 
       case DateRangeType.custom:
-        final start = customStart ?? DateTime(reference.year, reference.month, 1);
+        final start =
+            customStart ?? DateTime(reference.year, reference.month, 1);
         final endDay = customEnd ?? today;
         final end = DateTime(endDay.year, endDay.month, endDay.day + 1);
         return (start, end);

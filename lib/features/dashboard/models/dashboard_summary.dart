@@ -4,7 +4,11 @@ import '../../../models/transaction.dart';
 
 /// Tổng thu/chi của một ngày — một cột trong biểu đồ "tiền vào/tiền ra theo ngày".
 class DailyFlow extends Equatable {
-  const DailyFlow({required this.date, required this.income, required this.expense});
+  const DailyFlow({
+    required this.date,
+    required this.income,
+    required this.expense,
+  });
 
   final DateTime date;
   final int income;
@@ -16,7 +20,11 @@ class DailyFlow extends Equatable {
 
 /// Tổng thu/chi của một tháng — một cột trong biểu đồ "thu/chi theo tháng".
 class MonthlyFlow extends Equatable {
-  const MonthlyFlow({required this.month, required this.income, required this.expense});
+  const MonthlyFlow({
+    required this.month,
+    required this.income,
+    required this.expense,
+  });
 
   /// Luôn là ngày 1 của tháng đó.
   final DateTime month;
@@ -39,12 +47,12 @@ class DashboardSummary extends Equatable {
   });
 
   const DashboardSummary.empty()
-      : totalIncome = 0,
-        totalExpense = 0,
-        transactionCount = 0,
-        dailyFlows = const [],
-        monthlyFlows = const [],
-        recentTransactions = const [];
+    : totalIncome = 0,
+      totalExpense = 0,
+      transactionCount = 0,
+      dailyFlows = const [],
+      monthlyFlows = const [],
+      recentTransactions = const [];
 
   final int totalIncome;
   final int totalExpense;
@@ -57,11 +65,11 @@ class DashboardSummary extends Equatable {
 
   @override
   List<Object?> get props => [
-        totalIncome,
-        totalExpense,
-        transactionCount,
-        dailyFlows,
-        monthlyFlows,
-        recentTransactions,
-      ];
+    totalIncome,
+    totalExpense,
+    transactionCount,
+    dailyFlows,
+    monthlyFlows,
+    recentTransactions,
+  ];
 }

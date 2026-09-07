@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/constants/transaction_categories.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../models/transaction.dart';
 import '../../../../models/transaction_type.dart';
+import '../../../../providers/category_settings_providers.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../providers/supabase_providers.dart';
 import '../../../dashboard/providers/dashboard_summary_provider.dart';
@@ -24,10 +26,12 @@ class TransactionDetailScreen extends ConsumerStatefulWidget {
   final Transaction transaction;
 
   @override
-  ConsumerState<TransactionDetailScreen> createState() => _TransactionDetailScreenState();
+  ConsumerState<TransactionDetailScreen> createState() =>
+      _TransactionDetailScreenState();
 }
 
-class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScreen> {
+class _TransactionDetailScreenState
+    extends ConsumerState<TransactionDetailScreen> {
   late final TextEditingController _noteController;
   late final TextEditingController _categoryController;
   late Transaction _transaction;
@@ -45,10 +49,15 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
 
   Future<void> _loadCategorySuggestions() async {
     final repository = ref.read(transactionRepositoryProvider);
+    final settings = ref.read(categorySettingsServiceProvider);
     final existing = await repository.getDistinctCategories();
+    final hidden = settings.getHiddenCategories();
     if (!mounted) return;
     setState(() {
-      _categorySuggestions = {...presetTransactionCategories, ...existing}.toList()..sort();
+      _categorySuggestions = {
+        ...presetTransactionCategories,
+        ...existing,
+      }.where((tag) => !hidden.contains(tag)).toList()..sort();
     });
   }
 
@@ -60,7 +69,8 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
   }
 
   bool get _noteChanged => _noteController.text != _transaction.note;
-  bool get _categoryChanged => _categoryController.text != _transaction.category;
+  bool get _categoryChanged =>
+      _categoryController.text != _transaction.category;
   bool get _hasChanges => _noteChanged || _categoryChanged;
 
   @override
@@ -89,9 +99,12 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
                 isIncome: isIncome,
                 currency: _transaction.currency,
               ),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(color: color, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 40,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -100,12 +113,20 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _DetailRow(label: 'Loại', value: isIncome ? 'Tiền vào' : 'Tiền ra'),
+                  _DetailRow(
+                    label: 'Loại',
+                    value: isIncome ? 'Tiền vào' : 'Tiền ra',
+                  ),
                   _DetailRow(
                     label: 'Thời gian',
-                    value: AppDateFormatter.formatDateTime(_transaction.transactionTime),
+                    value: AppDateFormatter.formatDateTime(
+                      _transaction.transactionTime,
+                    ),
                   ),
-                  _DetailRow(label: 'Tài khoản', value: _transaction.account ?? '—'),
+                  _DetailRow(
+                    label: 'Tài khoản',
+                    value: _transaction.account ?? '—',
+                  ),
                   _DetailRow(
                     label: 'Số dư sau giao dịch',
                     value: _transaction.balanceAfter != null
@@ -116,8 +137,12 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
                         : '—',
                   ),
                   if (_transaction.transactionCode != null)
-                    _DetailRow(label: 'Mã giao dịch', value: _transaction.transactionCode!),
-                  if (_transaction.sourcePackage == AppConfig.manualEntrySourcePackage)
+                    _DetailRow(
+                      label: 'Mã giao dịch',
+                      value: _transaction.transactionCode!,
+                    ),
+                  if (_transaction.sourcePackage ==
+                      AppConfig.manualEntrySourcePackage)
                     const _DetailRow(label: 'Nguồn', value: 'Nhập thủ công'),
                 ],
               ),
@@ -126,7 +151,11 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
           const SizedBox(height: 24),
           Text(
             'Nội dung',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 22,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -136,18 +165,30 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
                 _transaction.description.isEmpty
                     ? '(Không có nội dung)'
                     : _transaction.description,
+                style: const TextStyle(
+                  fontFamily: RetroStyle.fontFamily,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'Nhóm chi tiêu',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 22,
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
             key: const Key('category_field'),
             controller: _categoryController,
+            style: const TextStyle(
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 18,
+            ),
             decoration: const InputDecoration(
               hintText: 'Ví dụ: Ăn vặt, Xăng xe... (tự gõ nhóm mới cũng được)',
               border: OutlineInputBorder(),
@@ -162,7 +203,8 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
               children: _categorySuggestions.map((category) {
                 return ActionChip(
                   label: Text(category),
-                  onPressed: () => setState(() => _categoryController.text = category),
+                  onPressed: () =>
+                      setState(() => _categoryController.text = category),
                 );
               }).toList(),
             ),
@@ -172,7 +214,11 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
             children: [
               Text(
                 'Ghi chú của bạn',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: RetroStyle.fontFamily,
+                  fontSize: 22,
+                ),
               ),
               const SizedBox(width: 6),
               Tooltip(
@@ -181,7 +227,11 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
                     'không gửi tài khoản hay nội dung notification gốc) để bạn '
                     'xem/sửa được từ máy tính qua Supabase Table Editor. Nhóm chi '
                     'tiêu chỉ lưu trên máy, không đồng bộ.',
-                child: Icon(Icons.info_outline, size: 16, color: Colors.black45),
+                child: Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.black45,
+                ),
               ),
             ],
           ),
@@ -190,6 +240,10 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
             key: const Key('note_field'),
             controller: _noteController,
             maxLines: 3,
+            style: const TextStyle(
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 18,
+            ),
             decoration: const InputDecoration(
               hintText: 'Ví dụ: tiền ăn trưa với đồng nghiệp...',
               border: OutlineInputBorder(),
@@ -254,15 +308,19 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
     try {
       await ref.read(noteSyncServiceProvider).pushNote(updated);
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đã lưu ghi chú và đồng bộ lên Supabase')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã lưu ghi chú và đồng bộ lên Supabase'),
+          ),
+        );
       }
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã lưu ghi chú local — đồng bộ Supabase thất bại: $error'),
+            content: Text(
+              'Đã lưu ghi chú local — đồng bộ Supabase thất bại: $error',
+            ),
           ),
         );
       }
@@ -274,12 +332,20 @@ class _TransactionDetailScreenState extends ConsumerState<TransactionDetailScree
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xóa giao dịch?'),
-        content: const Text('Giao dịch này sẽ bị xóa khỏi lịch sử. Hành động không thể hoàn tác.'),
+        content: const Text(
+          'Giao dịch này sẽ bị xóa khỏi lịch sử. Hành động không thể hoàn tác.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Hủy')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Hủy'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Xóa', style: TextStyle(color: AppColors.expense)),
+            child: const Text(
+              'Xóa',
+              style: TextStyle(color: AppColors.expense),
+            ),
           ),
         ],
       ),
@@ -309,12 +375,23 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.black54,
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 17,
+            ),
+          ),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 17,
+              ),
             ),
           ),
         ],

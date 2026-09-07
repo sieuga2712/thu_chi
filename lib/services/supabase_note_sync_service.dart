@@ -18,9 +18,11 @@ import 'transaction_fingerprint.dart';
 ///   — không tự động ghi đè local lúc mở app, tránh mất note vừa sửa mà
 ///   chưa kịp push thành công.
 class SupabaseNoteSyncService implements NoteSyncService {
-  SupabaseNoteSyncService({required SupabaseClient client, required TransactionRepository repository})
-    : _client = client,
-      _repository = repository;
+  SupabaseNoteSyncService({
+    required SupabaseClient client,
+    required TransactionRepository repository,
+  }) : _client = client,
+       _repository = repository;
 
   final SupabaseClient _client;
   final TransactionRepository _repository;
@@ -39,7 +41,9 @@ class SupabaseNoteSyncService implements NoteSyncService {
 
   @override
   Future<int> pullAllNotes() async {
-    final rows = await _client.from(SupabaseConfig.notesTable).select('fingerprint, note');
+    final rows = await _client
+        .from(SupabaseConfig.notesTable)
+        .select('fingerprint, note');
 
     final remoteByFingerprint = <String, String>{};
     for (final row in (rows as List).cast<Map<String, dynamic>>()) {

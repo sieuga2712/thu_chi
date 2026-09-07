@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/retro_style.dart';
+
 class SettingsActionTile extends StatelessWidget {
   const SettingsActionTile({
     super.key,
@@ -20,8 +22,19 @@ class SettingsActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: iconColor),
-      title: Text(title),
-      subtitle: subtitle == null ? null : Text(subtitle!),
+      title: Text(
+        title,
+        style: const TextStyle(fontFamily: RetroStyle.fontFamily, fontSize: 19),
+      ),
+      subtitle: subtitle == null
+          ? null
+          : Text(
+              subtitle!,
+              style: const TextStyle(
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 16,
+              ),
+            ),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );

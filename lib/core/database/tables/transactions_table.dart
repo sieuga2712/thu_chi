@@ -17,11 +17,16 @@ import '../converters/transaction_type_converter.dart';
 /// ở tầng ứng dụng, [DriftTransactionRepository] luôn tính và gán giá trị
 /// này cho mọi lần insert.
 @DataClassName('TransactionRow')
-@TableIndex(name: 'transactions_fingerprint_idx', columns: {#fingerprint}, unique: true)
+@TableIndex(
+  name: 'transactions_fingerprint_idx',
+  columns: {#fingerprint},
+  unique: true,
+)
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  TextColumn get transactionType => text().map(const TransactionTypeConverter())();
+  TextColumn get transactionType =>
+      text().map(const TransactionTypeConverter())();
 
   IntColumn get amount => integer()();
   TextColumn get currency => text().withDefault(const Constant('VND'))();

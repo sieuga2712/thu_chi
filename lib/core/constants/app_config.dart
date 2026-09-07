@@ -17,9 +17,7 @@ class AppConfig {
 
   /// Các package mà notification sẽ được bắt và phân tích.
   /// Đã xác minh trên thiết bị thật qua `adb shell pm list packages | grep vietin`.
-  static const Set<String> supportedPackages = <String>{
-    'com.vietinbank.ipay',
-  };
+  static const Set<String> supportedPackages = <String>{'com.vietinbank.ipay'};
 
   /// [Transaction.sourcePackage] gán cho giao dịch được người dùng tự thêm
   /// bằng cách dán nội dung thông báo (màn hình "Thêm giao dịch thủ công"),

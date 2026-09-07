@@ -13,7 +13,9 @@ final allTransactionsProvider = FutureProvider<List<Transaction>>((ref) async {
 });
 
 /// Danh sách đã áp dụng tìm kiếm + bộ lọc loại giao dịch đang chọn.
-final filteredTransactionsProvider = Provider<AsyncValue<List<Transaction>>>((ref) {
+final filteredTransactionsProvider = Provider<AsyncValue<List<Transaction>>>((
+  ref,
+) {
   final query = ref.watch(transactionQueryProvider);
   final allAsync = ref.watch(allTransactionsProvider);
   return allAsync.whenData((all) => filterTransactions(all, query));

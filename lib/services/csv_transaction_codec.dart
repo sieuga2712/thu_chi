@@ -89,9 +89,13 @@ class CsvTransactionCodec {
       currency: (currency?.isNotEmpty ?? false) ? currency! : 'VND',
       account: (account?.isNotEmpty ?? false) ? account : null,
       description: row['description']?.toString() ?? '',
-      balanceAfter: (balanceRaw?.isNotEmpty ?? false) ? int.tryParse(balanceRaw!) : null,
+      balanceAfter: (balanceRaw?.isNotEmpty ?? false)
+          ? int.tryParse(balanceRaw!)
+          : null,
       transactionTime: time,
-      transactionCode: (transactionCode?.isNotEmpty ?? false) ? transactionCode : null,
+      transactionCode: (transactionCode?.isNotEmpty ?? false)
+          ? transactionCode
+          : null,
       rawNotification: row['rawNotification']?.toString() ?? '',
       sourcePackage: row['sourcePackage']?.toString() ?? '',
     );

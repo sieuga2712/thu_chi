@@ -14,7 +14,11 @@ DashboardSummary computeDashboardSummary(
   final (start, end) = filter.resolve(reference);
 
   final inRange = allTransactions
-      .where((t) => !t.transactionTime.isBefore(start) && t.transactionTime.isBefore(end))
+      .where(
+        (t) =>
+            !t.transactionTime.isBefore(start) &&
+            t.transactionTime.isBefore(end),
+      )
       .toList(growable: false);
 
   var totalIncome = 0;
@@ -45,12 +49,18 @@ DashboardSummary computeDashboardSummary(
 /// [end] nhất.
 const _maxDailyBuckets = 62;
 
-List<DailyFlow> _buildDailyFlows(List<Transaction> inRange, DateTime start, DateTime end) {
+List<DailyFlow> _buildDailyFlows(
+  List<Transaction> inRange,
+  DateTime start,
+  DateTime end,
+) {
   final totalDays = end.difference(start).inDays;
   if (totalDays <= 0) return const [];
 
   final days = totalDays > _maxDailyBuckets ? _maxDailyBuckets : totalDays;
-  final effectiveStart = totalDays > _maxDailyBuckets ? end.subtract(Duration(days: days)) : start;
+  final effectiveStart = totalDays > _maxDailyBuckets
+      ? end.subtract(Duration(days: days))
+      : start;
 
   final incomeByDay = <DateTime, int>{};
   final expenseByDay = <DateTime, int>{};
@@ -61,7 +71,11 @@ List<DailyFlow> _buildDailyFlows(List<Transaction> inRange, DateTime start, Date
   }
 
   for (final t in inRange) {
-    final day = DateTime(t.transactionTime.year, t.transactionTime.month, t.transactionTime.day);
+    final day = DateTime(
+      t.transactionTime.year,
+      t.transactionTime.month,
+      t.transactionTime.day,
+    );
     if (!incomeByDay.containsKey(day)) continue;
     if (t.type == TransactionType.income) {
       incomeByDay[day] = incomeByDay[day]! + t.amount;
@@ -72,7 +86,13 @@ List<DailyFlow> _buildDailyFlows(List<Transaction> inRange, DateTime start, Date
 
   final sortedDays = incomeByDay.keys.toList()..sort();
   return sortedDays
-      .map((day) => DailyFlow(date: day, income: incomeByDay[day]!, expense: expenseByDay[day]!))
+      .map(
+        (day) => DailyFlow(
+          date: day,
+          income: incomeByDay[day]!,
+          expense: expenseByDay[day]!,
+        ),
+      )
       .toList(growable: false);
 }
 
@@ -81,8 +101,15 @@ List<DailyFlow> _buildDailyFlows(List<Transaction> inRange, DateTime start, Date
 /// dài hạn dù đang lọc "Hôm nay" hay "7 ngày".
 const _monthsToShow = 6;
 
-List<MonthlyFlow> _buildMonthlyFlows(List<Transaction> all, DateTime reference) {
-  final firstMonth = DateTime(reference.year, reference.month - (_monthsToShow - 1), 1);
+List<MonthlyFlow> _buildMonthlyFlows(
+  List<Transaction> all,
+  DateTime reference,
+) {
+  final firstMonth = DateTime(
+    reference.year,
+    reference.month - (_monthsToShow - 1),
+    1,
+  );
 
   final incomeByMonth = <DateTime, int>{};
   final expenseByMonth = <DateTime, int>{};
@@ -104,6 +131,12 @@ List<MonthlyFlow> _buildMonthlyFlows(List<Transaction> all, DateTime reference) 
 
   final sortedMonths = incomeByMonth.keys.toList()..sort();
   return sortedMonths
-      .map((month) => MonthlyFlow(month: month, income: incomeByMonth[month]!, expense: expenseByMonth[month]!))
+      .map(
+        (month) => MonthlyFlow(
+          month: month,
+          income: incomeByMonth[month]!,
+          expense: expenseByMonth[month]!,
+        ),
+      )
       .toList(growable: false);
 }

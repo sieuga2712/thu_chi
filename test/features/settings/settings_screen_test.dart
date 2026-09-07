@@ -138,6 +138,8 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
     await tester.pumpAndSettle();
 
@@ -151,6 +153,8 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
     await tester.pumpAndSettle();
 
@@ -163,6 +167,8 @@ void main() {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Đồng bộ ghi chú từ Supabase'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Đồng bộ ghi chú từ Supabase'));
     await tester.pumpAndSettle();
 

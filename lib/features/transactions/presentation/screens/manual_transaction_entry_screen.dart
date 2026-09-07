@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/retro_style.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../models/notification_data.dart';
@@ -27,7 +28,8 @@ class ManualTransactionEntryScreen extends ConsumerStatefulWidget {
       _ManualTransactionEntryScreenState();
 }
 
-class _ManualTransactionEntryScreenState extends ConsumerState<ManualTransactionEntryScreen> {
+class _ManualTransactionEntryScreenState
+    extends ConsumerState<ManualTransactionEntryScreen> {
   final _controller = TextEditingController();
   final _parser = const TransactionParser();
 
@@ -119,6 +121,7 @@ class _ManualTransactionEntryScreenState extends ConsumerState<ManualTransaction
           const Text(
             'Dán nguyên văn nội dung thông báo ngân hàng (copy được từ thông '
             'báo đã bỏ lỡ hoặc bị xóa). Ví dụ định dạng:',
+            style: TextStyle(fontFamily: RetroStyle.fontFamily, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Container(
@@ -140,6 +143,10 @@ class _ManualTransactionEntryScreenState extends ConsumerState<ManualTransaction
             key: const Key('manual_entry_field'),
             controller: _controller,
             maxLines: 6,
+            style: const TextStyle(
+              fontFamily: RetroStyle.fontFamily,
+              fontSize: 18,
+            ),
             decoration: const InputDecoration(
               hintText: 'Dán nội dung thông báo ở đây...',
               border: OutlineInputBorder(),
@@ -161,13 +168,24 @@ class _ManualTransactionEntryScreenState extends ConsumerState<ManualTransaction
             ),
           if (_parseError != null) ...[
             const SizedBox(height: 12),
-            Text(_parseError!, style: const TextStyle(color: AppColors.expense)),
+            Text(
+              _parseError!,
+              style: const TextStyle(
+                color: AppColors.expense,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 18,
+              ),
+            ),
           ],
           if (preview != null) ...[
             const SizedBox(height: 20),
             Text(
               'Xem trước',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 22,
+              ),
             ),
             const SizedBox(height: 8),
             _PreviewCard(transaction: preview),
@@ -229,19 +247,29 @@ class _PreviewCard extends StatelessWidget {
                 isIncome: isIncome,
                 currency: transaction.currency,
               ),
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: color, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 28,
+              ),
             ),
             const SizedBox(height: 8),
-            _PreviewRow(label: 'Loại', value: isIncome ? 'Tiền vào' : 'Tiền ra'),
+            _PreviewRow(
+              label: 'Loại',
+              value: isIncome ? 'Tiền vào' : 'Tiền ra',
+            ),
             _PreviewRow(
               label: 'Thời gian',
-              value: AppDateFormatter.formatDateTime(transaction.transactionTime),
+              value: AppDateFormatter.formatDateTime(
+                transaction.transactionTime,
+              ),
             ),
             _PreviewRow(
               label: 'Nội dung',
-              value: transaction.description.isEmpty ? '(Không có nội dung)' : transaction.description,
+              value: transaction.description.isEmpty
+                  ? '(Không có nội dung)'
+                  : transaction.description,
             ),
             if (transaction.account != null)
               _PreviewRow(label: 'Tài khoản', value: transaction.account!),
@@ -275,9 +303,25 @@ class _PreviewRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 120,
-            child: Text(label, style: const TextStyle(color: Colors.black54)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black54,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 17,
+              ),
+            ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500))),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontFamily: RetroStyle.fontFamily,
+                fontSize: 17,
+              ),
+            ),
+          ),
         ],
       ),
     );

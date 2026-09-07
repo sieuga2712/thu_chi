@@ -28,7 +28,9 @@ class NotificationData extends Equatable {
   /// chứa toàn bộ nội dung khi notification dùng BigTextStyle), nếu không có
   /// thì dùng [text]; ghép thêm [title] và [subText] nếu có.
   String get fullContent {
-    final contentLine = (bigText != null && bigText!.isNotEmpty) ? bigText! : text;
+    final contentLine = (bigText != null && bigText!.isNotEmpty)
+        ? bigText!
+        : text;
     final parts = <String>[
       if (title.isNotEmpty) title,
       if (contentLine.isNotEmpty) contentLine,
@@ -56,13 +58,13 @@ class NotificationData extends Equatable {
 
   @override
   List<Object?> get props => [
-        packageName,
-        title,
-        text,
-        bigText,
-        subText,
-        postTime,
-        capturedAt,
-        notificationKey,
-      ];
+    packageName,
+    title,
+    text,
+    bigText,
+    subText,
+    postTime,
+    capturedAt,
+    notificationKey,
+  ];
 }

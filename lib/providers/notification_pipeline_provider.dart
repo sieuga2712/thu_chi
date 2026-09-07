@@ -6,10 +6,11 @@ import '../services/notification_pipeline_service.dart';
 import 'database_providers.dart';
 import 'notification_providers.dart';
 
-final notificationPipelineServiceProvider = Provider<NotificationPipelineService>((ref) {
-  final repository = ref.watch(transactionRepositoryProvider);
-  return NotificationPipelineService(repository: repository);
-});
+final notificationPipelineServiceProvider =
+    Provider<NotificationPipelineService>((ref) {
+      final repository = ref.watch(transactionRepositoryProvider);
+      return NotificationPipelineService(repository: repository);
+    });
 
 /// Khởi động toàn bộ pipeline notification -> parser -> DB:
 /// 1) Rút hết backlog mà native đã đệm trong lúc app không chạy/không lắng
@@ -31,7 +32,9 @@ final notificationPipelineProvider = FutureProvider<void>((ref) async {
     ref.invalidate(dashboardSummaryProvider);
   }
 
-  final subscription = nativeService.notificationStream.listen((notification) async {
+  final subscription = nativeService.notificationStream.listen((
+    notification,
+  ) async {
     final result = await service.process(notification);
     if (result != null) {
       ref.invalidate(allTransactionsProvider);

@@ -2,10 +2,12 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thu_chi/core/database/app_database.dart';
 import 'package:thu_chi/features/transactions/presentation/screens/transaction_detail_screen.dart';
 import 'package:thu_chi/models/transaction.dart';
 import 'package:thu_chi/models/transaction_type.dart';
+import 'package:thu_chi/providers/category_settings_providers.dart';
 import 'package:thu_chi/providers/database_providers.dart';
 import 'package:thu_chi/providers/supabase_providers.dart';
 import 'package:thu_chi/repositories/drift_transaction_repository.dart';
@@ -15,11 +17,14 @@ import '../../helpers/fake_note_sync_service.dart';
 void main() {
   late AppDatabase db;
   late FakeNoteSyncService fakeNoteSync;
+  late SharedPreferences prefs;
   late Transaction insertedTransaction;
 
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     fakeNoteSync = FakeNoteSyncService();
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
 
     final repo = DriftTransactionRepository(db);
     await repo.insert(
@@ -45,6 +50,7 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         noteSyncServiceProvider.overrideWithValue(fakeNoteSync),
+        sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: MaterialApp(home: TransactionDetailScreen(transaction: insertedTransaction)),
     );

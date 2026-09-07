@@ -4,7 +4,9 @@ import '../core/notification/native_notification_service.dart';
 import '../models/notification_data.dart';
 
 /// Điểm truy cập duy nhất tới [NativeNotificationService] trong cây provider.
-final nativeNotificationServiceProvider = Provider<NativeNotificationService>((ref) {
+final nativeNotificationServiceProvider = Provider<NativeNotificationService>((
+  ref,
+) {
   return const NativeNotificationService();
 });
 

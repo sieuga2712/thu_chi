@@ -51,7 +51,10 @@ final List<String> expenseKeywords = [
 
 /// Số tài khoản đã che, ví dụ "****1234" hoặc "1234****".
 final List<RegExp> accountPatterns = [
-  RegExp(r'(?:TK|Tai khoan|Tài khoản)\s*[:\.]?\s*([\d*]{4,20})', caseSensitive: false),
+  RegExp(
+    r'(?:TK|Tai khoan|Tài khoản)\s*[:\.]?\s*([\d*]{4,20})',
+    caseSensitive: false,
+  ),
   RegExp(r'\b(\*{2,}\d{2,8})\b'),
   RegExp(r'\b(\d{2,8}\*{2,})\b'),
 ];
@@ -89,7 +92,10 @@ final List<RegExp> balancePatterns = [
 
 /// Mã giao dịch, nếu notification có cung cấp.
 final List<RegExp> transactionCodePatterns = [
-  RegExp(r'(?:Ma\s*GD|Mã\s*GD|Ref|FT|GD\s*so)\s*[:\.]?\s*([A-Za-z0-9]{4,})', caseSensitive: false),
+  RegExp(
+    r'(?:Ma\s*GD|Mã\s*GD|Ref|FT|GD\s*so)\s*[:\.]?\s*([A-Za-z0-9]{4,})',
+    caseSensitive: false,
+  ),
 ];
 
 /// Thời gian giao dịch tường minh trong nội dung, dạng dd/MM/yyyy HH:mm[:ss].

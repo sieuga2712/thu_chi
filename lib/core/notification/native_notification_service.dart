@@ -61,10 +61,7 @@ class NativeNotificationService {
   Future<void> sendTestNotification({String? title, String? text}) async {
     await NotificationChannels.method.invokeMethod<void>(
       ChannelConstants.methodSendTestNotification,
-      <String, String?>{
-        'title': ?title,
-        'text': ?text,
-      },
+      <String, String?>{'title': ?title, 'text': ?text},
     );
   }
 

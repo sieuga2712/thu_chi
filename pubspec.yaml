@@ -53,3 +53,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Font pixel/terminal (VT323, giấy phép OFL) dùng cho tiêu đề/nhãn/nút bấm
+  # phong cách RPG retro — bundle local, KHÔNG tải qua mạng, giữ đúng nguyên
+  # tắc offline-first. Đã kiểm tra: hỗ trợ đầy đủ dấu tiếng Việt (khác với
+  # "Press Start 2P" — font pixel phổ biến khác nhưng THIẾU nhóm dấu thanh
+  # tiếng Việt như ệ/ị/ố/ữ/ả, gây vỡ chữ nếu dùng cho UI tiếng Việt).
+  fonts:
+    - family: VT323
+      fonts:
+        - asset: assets/fonts/VT323-Regular.ttf
